@@ -12,6 +12,7 @@
 #include "tabs/right_rectangles.hpp"
 #include "tabs/trapezoid.hpp"
 #include "tabs/left_rectangles.hpp"
+#include "tabs/simpson.hpp"
 
 MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Калькулятор интегралов");
@@ -39,6 +40,11 @@ void MainWindow::setupUi() {
     m_trapezoid_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_trapezoid_tab_button->setFixedHeight(40);
 
+    m_simpson_tab_button = new QPushButton();
+    m_simpson_tab_button->setText("Симпсон");
+    m_simpson_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    m_simpson_tab_button->setFixedHeight(40);
+
     QLabel* menuContainerTitle = new QLabel("Методы");
     QPalette titlePalette = menuContainerTitle->palette();
     titlePalette.setColor(menuContainerTitle->foregroundRole(), Qt::white);
@@ -64,11 +70,13 @@ void MainWindow::setupUi() {
     menuLayout->addWidget(m_left_rectangles_tab_button);
     menuLayout->addWidget(m_right_rectangles_tab_button);
     menuLayout->addWidget(m_trapezoid_tab_button);
+    menuLayout->addWidget(m_simpson_tab_button);
     menuLayout->addStretch();
 
     menuContainer->setLayout(menuLayout);
 
     m_content_widget.reset(new LeftRectanglesTab()); 
+    m_current_method = IntegralMethod::LeftRectangles;
 
     m_main_container_layout->addWidget(menuContainer);
     m_main_container_layout->addWidget(m_content_widget.get());
@@ -76,19 +84,40 @@ void MainWindow::setupUi() {
     QWidget* mainContainer = new QWidget();
     mainContainer->setLayout(m_main_container_layout);
 
-    QObject::connect(m_left_rectangles_tab_button, &QPushButton::clicked, [this]() {
+    QObject::connect(m_left_rectangles_tab_button, &QPushButton::clicked, [this] {
+        if (m_current_method == IntegralMethod::LeftRectangles)
+            return;
+
         m_content_widget.reset(new LeftRectanglesTab());
         m_main_container_layout->addWidget(m_content_widget.get());
+        m_current_method = IntegralMethod::LeftRectangles;
     });
 
-    QObject::connect(m_right_rectangles_tab_button, &QPushButton::clicked, [this]() {
+    QObject::connect(m_right_rectangles_tab_button, &QPushButton::clicked, [this] {
+        if (m_current_method == IntegralMethod::RightRectangles)
+            return;
+
         m_content_widget.reset(new RightRectanglesTab());
         m_main_container_layout->addWidget(m_content_widget.get());
+        m_current_method = IntegralMethod::RightRectangles;
     });
 
-    QObject::connect(m_trapezoid_tab_button, &QPushButton::clicked, [this]() {
+    QObject::connect(m_trapezoid_tab_button, &QPushButton::clicked, [this] {
+        if (m_current_method == IntegralMethod::Trapezoid)
+            return;
+
         m_content_widget.reset(new TrapezoidTab());
         m_main_container_layout->addWidget(m_content_widget.get());
+        m_current_method = IntegralMethod::Trapezoid;
+    });
+
+    QObject::connect(m_simpson_tab_button, &QPushButton::clicked, [this] {
+        if (m_current_method == IntegralMethod::Simpson)
+            return;
+
+        m_content_widget.reset(new SimpsonTab());
+        m_main_container_layout->addWidget(m_content_widget.get());
+        m_current_method = IntegralMethod::Simpson;
     });
 
     setCentralWidget(mainContainer);

@@ -6,6 +6,13 @@
 #include <QHBoxLayout>
 #include <memory>
 
+enum class IntegralMethod : uint8_t {
+    LeftRectangles = 0,
+    RightRectangles,
+    Trapezoid,
+    Simpson,
+};
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -22,6 +29,8 @@ private:
     QPushButton* m_left_rectangles_tab_button = nullptr;
     QPushButton* m_right_rectangles_tab_button = nullptr;
     QPushButton* m_trapezoid_tab_button = nullptr;
+    QPushButton* m_simpson_tab_button = nullptr;
+    IntegralMethod m_current_method = IntegralMethod::LeftRectangles;
 };
 
 #endif // APP_HPP_

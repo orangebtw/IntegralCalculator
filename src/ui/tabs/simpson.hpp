@@ -1,5 +1,5 @@
-#ifndef UI_TABS_TRAPEZOID_TAB_HPP_
-#define UI_TABS_TRAPEZOID_TAB_HPP_
+#ifndef TABS_SIMPSON_TAB_HPP_
+#define TABS_SIMPSON_TAB_HPP_
 
 #include <QWidget>
 #include <QLineEdit>
@@ -7,20 +7,19 @@
 #include <QLabel>
 
 #include "../../integral.hpp"
-
 #include "base_tab.hpp"
 
-class TrapezoidTab : public MethodTab {
+class SimpsonTab : public MethodTab {
     Q_OBJECT
 
 public:
-    TrapezoidTab(QWidget* parent = nullptr) : MethodTab("Метод трапеций", parent) {
+    SimpsonTab(QWidget* parent = nullptr) : MethodTab("Метод Симпсона", parent) {
     }
-    ~TrapezoidTab() = default;
+    ~SimpsonTab() = default;
 
 private:
     virtual bool calculate(double a, double b, unsigned n, const std::string& expr, double& result) override {
-        return integral::trapezoid(a, b, n, expr, result);
+        return integral::simpson(a, b, n, expr, result);
     }
 };
 
