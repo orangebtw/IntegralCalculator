@@ -20,6 +20,7 @@ bool RightRectanglesTab::calculate(double a, double b, unsigned n, const std::st
     
     {
         QLineSeries* lineSeries = new QLineSeries();
+        lineSeries->setUseOpenGL(true);
         
         for (x = a; x <= b; x += 0.001) {
             const qreal value = expression.value();
@@ -35,34 +36,41 @@ bool RightRectanglesTab::calculate(double a, double b, unsigned n, const std::st
         lineSeries->attachAxis(mAxisY);
     }
 
-    x = b;
-    QPointF prevPoint(x, expression.value());
-
     const double h = (b - a) / n;
-    for (x = b; x >= a + h; x -= h) {
-        QPointF point(x, expression.value());
+    for (double k = b; k >= a + h; k -= h) {
+        x = k;
+        QPointF p1(x, expression.value());
+        x = k - h;
+        QPointF p2(x, expression.value());
 
         QLineSeries* lowerSeries = new QLineSeries();
-        lowerSeries->append(prevPoint.x(), min);
-        lowerSeries->append(point.x(), min);
+        lowerSeries->append(p1.x(), 0);
+        lowerSeries->append(p1.x(), 0);
+        lowerSeries->setUseOpenGL(true);
         
         QLineSeries* upperSeries = new QLineSeries();
-        upperSeries->append(prevPoint.x(), prevPoint.y());
-        upperSeries->append(point.x(), prevPoint.y());
+        upperSeries->append(p1);
+        upperSeries->append(p2.x(), p1.y());
+        upperSeries->setUseOpenGL(true);
+
+        if (p2.y() < 0) {
+            std::swap(lowerSeries, upperSeries);
+        }
 
         QAreaSeries* areaSeries = new QAreaSeries();
         areaSeries->setLowerSeries(lowerSeries);
         areaSeries->setUpperSeries(upperSeries);
         areaSeries->setColor(mFillColor);
         areaSeries->setBorderColor(mBorderColor);
+        areaSeries->setUseOpenGL(true);
 
         mChart->addSeries(areaSeries);
 
         areaSeries->attachAxis(mAxisX);
         areaSeries->attachAxis(mAxisY);
-
-        prevPoint = point;
     }
+
+    setup_axis_lines(a, b, min, max);
 
     mAxisX->setRange(a, b);
     mAxisY->setRange(min, max);

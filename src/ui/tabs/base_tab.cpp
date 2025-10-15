@@ -5,6 +5,7 @@
 #include <QChart>
 #include <QChartView>
 #include <QValueAxis>
+#include <qnamespace.h>
 
 #include "base_tab.hpp"
 #include "../widgets/chartview.hpp"
@@ -42,6 +43,7 @@ void MethodTab::setupUi(const QString& title) {
 
     mAxisX = new QValueAxis();
     mAxisX->setLabelFormat("%i");
+    mAxisX->setTickAnchor(0.0);
     mChart->addAxis(mAxisX, Qt::AlignBottom);
     
     mAxisY = new QValueAxis();
@@ -51,6 +53,7 @@ void MethodTab::setupUi(const QString& title) {
 
     mChartView = new ChartView(mChart);
     mChartView->setRenderHint(QPainter::Antialiasing);
+    mChartView->setRenderHint(QPainter::SmoothPixmapTransform);
 
     QVBoxLayout* controlsLayout = new QVBoxLayout();
     controlsLayout->setAlignment(Qt::AlignTop);
@@ -93,4 +96,30 @@ void MethodTab::setupUi(const QString& title) {
     });
 
     setLayout(mainLayout);
+}
+
+void MethodTab::setup_axis_lines(double x_min, double x_max, double y_min, double y_max)  {
+    QPen pen = QPen();
+    pen.setColor(QColor(Qt::black));
+    pen.setWidth(1);
+
+    QLineSeries* axisXSeries = new QLineSeries();
+    axisXSeries->append(x_min, 0);
+    axisXSeries->append(x_max, 0);
+    axisXSeries->setPen(pen);
+    axisXSeries->setUseOpenGL(true);
+
+    QLineSeries* axisYSeries = new QLineSeries();
+    axisYSeries->append(0, y_min);
+    axisYSeries->append(0, y_max);
+    axisYSeries->setPen(pen);
+    axisYSeries->setUseOpenGL(true);
+
+    mChart->addSeries(axisXSeries);
+    mChart->addSeries(axisYSeries);
+
+    axisXSeries->attachAxis(mAxisX);
+    axisXSeries->attachAxis(mAxisY);
+    axisYSeries->attachAxis(mAxisX);
+    axisYSeries->attachAxis(mAxisY);
 }

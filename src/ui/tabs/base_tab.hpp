@@ -20,6 +20,8 @@ public:
 
 protected:
     void setupUi(const QString& title);
+
+    void setup_axis_lines(double x_min, double x_max, double y_min, double y_max);
     
     virtual bool calculate(double a, double b, unsigned n, const std::string& expr, double& result) = 0;
 

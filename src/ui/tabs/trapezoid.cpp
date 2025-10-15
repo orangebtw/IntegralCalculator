@@ -20,6 +20,7 @@ bool TrapezoidTab::calculate(double a, double b, unsigned n, const std::string& 
     
     {
         QLineSeries* lineSeries = new QLineSeries();
+        lineSeries->setUseOpenGL(true);
         
         for (x = a; x <= b; x += 0.001) {
             const qreal value = expression.value();
@@ -35,34 +36,41 @@ bool TrapezoidTab::calculate(double a, double b, unsigned n, const std::string& 
         lineSeries->attachAxis(mAxisY);
     }
 
-    x = a;
-    QPointF prevPoint(x, expression.value());
-
     const double h = (b - a) / n;
-    for (x = a + h; x <= b; x += h) {
-        QPointF point(x, expression.value());
+    for (double k = a; k <= b; k += h) {
+        x = k;
+        QPointF p1(x, expression.value());
+        x = k + h;
+        QPointF p2(x, expression.value());
 
         QLineSeries* lowerSeries = new QLineSeries();
-        lowerSeries->append(prevPoint.x(), min);
-        lowerSeries->append(point.x(), min);
+        lowerSeries->setUseOpenGL(true);
+        lowerSeries->append(p1.x(), 0);
+        lowerSeries->append(p2.x(), 0);
         
         QLineSeries* upperSeries = new QLineSeries();
-        upperSeries->append(prevPoint.x(), prevPoint.y());
-        upperSeries->append(point.x(), point.y());
+        upperSeries->setUseOpenGL(true);
+        upperSeries->append(p1);
+        upperSeries->append(p2);
+
+        if (p2.y() < 0) {
+            std::swap(lowerSeries, upperSeries);
+        }
 
         QAreaSeries* areaSeries = new QAreaSeries();
         areaSeries->setLowerSeries(lowerSeries);
         areaSeries->setUpperSeries(upperSeries);
         areaSeries->setColor(mFillColor);
         areaSeries->setBorderColor(mBorderColor);
+        areaSeries->setUseOpenGL(true);
 
         mChart->addSeries(areaSeries);
 
         areaSeries->attachAxis(mAxisX);
         areaSeries->attachAxis(mAxisY);
-
-        prevPoint = point;
     }
+
+    setup_axis_lines(a, b, min, max);
 
     mAxisX->setRange(a, b);
     mAxisY->setRange(min, max);

@@ -27,6 +27,7 @@ bool SimpsonTab::calculate(double a, double b, unsigned n, const std::string& ex
     
     {
         QLineSeries* lineSeries = new QLineSeries();
+        lineSeries->setUseOpenGL(true);
 
         for (x = a; x <= b; x += 0.001) {
             const qreal value = expression.value();
@@ -53,12 +54,22 @@ bool SimpsonTab::calculate(double a, double b, unsigned n, const std::string& ex
         QPointF p3 = QPointF(x, expression.value());
 
         QLineSeries* lowerSeries = new QLineSeries();
+        lowerSeries->setUseOpenGL(true);
+
         QLineSeries* upperSeries = new QLineSeries();
+        upperSeries->setUseOpenGL(true);
 
         for (double t = 0.0; t < 1.0; t += 0.001) {
             const double x = k + 2*h*t;
-            lowerSeries->append(x, min);
-            upperSeries->append(x, parabola(p1, p2, p3, x));
+            const double value = parabola(p1, p2, p3, x);
+
+            if (value >= 0) {
+                lowerSeries->append(x, 0);
+                upperSeries->append(x, value);
+            } else {
+                lowerSeries->append(x, value);
+                upperSeries->append(x, 0);
+            }
         }
 
         QAreaSeries* areaSeries = new QAreaSeries();
@@ -66,12 +77,15 @@ bool SimpsonTab::calculate(double a, double b, unsigned n, const std::string& ex
         areaSeries->setUpperSeries(upperSeries);
         areaSeries->setColor(mFillColor);
         areaSeries->setBorderColor(mBorderColor);
+        areaSeries->setUseOpenGL(true);
 
         mChart->addSeries(areaSeries);
 
         areaSeries->attachAxis(mAxisX);
         areaSeries->attachAxis(mAxisY);
     }
+
+    setup_axis_lines(a, b, min, max);
 
     mAxisX->setRange(a, b);
     mAxisY->setRange(min, max);
