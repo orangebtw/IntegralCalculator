@@ -9,22 +9,23 @@
 
 #include "base_tab.hpp"
 #include "../widgets/chartview.hpp"
+#include "../../exprtk.hpp"
 
 void MethodTab::setupUi(const QString& title) {
-    QDoubleValidator* doubleValidator = new QDoubleValidator();
-    QIntValidator* intValidator = new QIntValidator();
+    QDoubleValidator* boundValidator = new QDoubleValidator();
+    QIntValidator* stepsValidator = new QIntValidator(1, std::numeric_limits<int>::max());
 
     mLowerBoundEdit = new QLineEdit();
     mLowerBoundEdit->setPlaceholderText("Нижний предел");
-    mLowerBoundEdit->setValidator(doubleValidator);
+    mLowerBoundEdit->setValidator(boundValidator);
 
     mUpperBoundEdit = new QLineEdit();
     mUpperBoundEdit->setPlaceholderText("Верхний предел");
-    mUpperBoundEdit->setValidator(doubleValidator);
+    mUpperBoundEdit->setValidator(boundValidator);
 
     mStepsAmountEdit = new QLineEdit();
     mStepsAmountEdit->setPlaceholderText("Кол-во шагов");
-    mStepsAmountEdit->setValidator(intValidator);
+    mStepsAmountEdit->setValidator(stepsValidator);
 
     mExpressionEdit = new QLineEdit();
     mExpressionEdit->setPlaceholderText("Подинтегральная функция");
@@ -74,21 +75,46 @@ void MethodTab::setupUi(const QString& title) {
     mainLayout->addWidget(controlsWidget);
 
     QObject::connect(mCalculateButton, &QPushButton::clicked, this, [this] {
+        QPalette palette = mResultLabel->palette();
+        palette.setColor(mResultLabel->foregroundRole(), Qt::black);
+
+        std::optional<const char*> errorText;
+
+        int n = 0;
+
+        if (mExpressionEdit->text().isEmpty()) {
+            errorText = "Ошибка: введите подинтегральную функцию.";
+        } else if (mLowerBoundEdit->text().isEmpty()) {
+            errorText = "Ошибка: введите нижний предел.";
+        } else if (mUpperBoundEdit->text().isEmpty()) {
+            errorText = "Ошибка: введите верхний предел.";
+        } else if (mStepsAmountEdit->text().isEmpty()) {
+            errorText = "Ошибка: введите кол-во шагов.";
+        } else {
+            n = mStepsAmountEdit->text().toInt();
+            if (n <= 0) {
+                errorText = "Ошибка: кол-во шагов должно быть больше нуля.";
+            }
+        }
+        
+        if (errorText.has_value()) {
+            palette.setColor(mResultLabel->foregroundRole(), Qt::red);
+            mResultLabel->setPalette(palette);
+            mResultLabel->setText(errorText.value());
+            return;
+        }
+
         const double a = mLowerBoundEdit->text().toDouble();
         const double b = mUpperBoundEdit->text().toDouble();
-        const unsigned n = mStepsAmountEdit->text().toUInt();
         const std::string expr = mExpressionEdit->text().toStdString();
-        
+
         double result = 0.0;
         const bool success = calculate(a, b, n, expr, result);
-
-        QPalette palette = mResultLabel->palette();
 
         if (success) {
             palette.setColor(mResultLabel->foregroundRole(), Qt::black);
             mResultLabel->setText(QString("Результат: %1").arg(result));
         } else {
-            palette.setColor(mResultLabel->foregroundRole(), Qt::red);
             mResultLabel->setText("Ошибка.");
         }
 
@@ -122,4 +148,26 @@ void MethodTab::setup_axis_lines(double x_min, double x_max, double y_min, doubl
     axisXSeries->attachAxis(mAxisY);
     axisYSeries->attachAxis(mAxisX);
     axisYSeries->attachAxis(mAxisY);
+}
+
+void MethodTab::plot_function(double a, double b, exprtk::expression<double>& expression, double& min, double& max) {
+    double& x = expression.get_symbol_table().get_variable("x")->ref();
+    max = std::numeric_limits<qreal>::min();
+    min = 0;
+    
+    QLineSeries* lineSeries = new QLineSeries();
+    lineSeries->setUseOpenGL(true);
+
+    for (x = a; x <= b; x += 0.001) {
+        const qreal value = expression.value();
+        if (value > max)
+            max = value;
+        if (value < min)
+            min = value;
+        lineSeries->append(x, value);
+    }
+
+    mChart->addSeries(lineSeries);
+    lineSeries->attachAxis(mAxisX);
+    lineSeries->attachAxis(mAxisY);
 }

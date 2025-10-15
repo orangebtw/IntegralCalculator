@@ -7,19 +7,6 @@
 
 namespace integral {
 
-namespace detail {
-    inline bool compile_expression(exprtk::expression<double>& expression, const std::string& expr, double& x) {
-        exprtk::symbol_table<double> symbolTable;
-        symbolTable.add_constants();
-        symbolTable.add_variable("x", x);
-
-        expression.register_symbol_table(symbolTable);
-
-        exprtk::parser<double> parser;
-        return parser.compile(expr, expression);
-    }
-}
-
 inline bool rectangles_left(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
     double& x = expression.get_symbol_table().get_variable("x")->ref();
 
