@@ -11,7 +11,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Charts)
 
 qt_standard_project_setup()
 
@@ -30,15 +30,15 @@ else()
 endif()
 
 if(RELEASE_BUILD)
-    message("Build Type: Release")
+    message("-- Build Type: Release")
 else()
-    message("Build Type: Debug")
+    message("-- Build Type: Debug")
 endif()
 
 if(DEBUG_INFO)
-    message("Debug Info: Enabled")
+    message("-- Debug Info: Enabled")
 else()
-    message("Debug Info: Disabled")
+    message("-- Debug Info: Disabled")
 endif()
 
 if(DEBUG_INFO)
@@ -55,4 +55,4 @@ file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" 
 
 qt_add_executable(${PROJECT_NAME} ${SRC})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Charts)

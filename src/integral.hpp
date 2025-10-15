@@ -20,13 +20,8 @@ namespace detail {
     }
 }
 
-inline bool rectangles_left(double a, double b, unsigned n, const std::string& expr, double& result) {
-    double x = 0.0;
-
-    exprtk::expression<double> expression;
-    if (!detail::compile_expression(expression, expr, x)) {
-        return false;
-    }
+inline bool rectangles_left(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
+    double& x = expression.get_symbol_table().get_variable("x")->ref();
 
     const double h = (b - a) / n;
     result = 0.0f;
@@ -38,13 +33,8 @@ inline bool rectangles_left(double a, double b, unsigned n, const std::string& e
     return true;
 }
 
-inline bool rectangles_right(double a, double b, unsigned n, const std::string& expr, double& result) {
-    double x = 0.0;
-
-    exprtk::expression<double> expression;
-    if (!detail::compile_expression(expression, expr, x)) {
-        return false;
-    }
+inline bool rectangles_right(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
+    double& x = expression.get_symbol_table().get_variable("x")->ref();
 
     const double h = (b - a) / n;
     result = 0.0f;
@@ -56,13 +46,8 @@ inline bool rectangles_right(double a, double b, unsigned n, const std::string& 
     return true;
 }
 
-inline bool trapezoid(double a, double b, unsigned n, const std::string& expr, double& result) {
-    double x = 0.0;
-
-    exprtk::expression<double> expression;
-    if (!detail::compile_expression(expression, expr, x)) {
-        return false;
-    }
+inline bool trapezoid(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
+    double& x = expression.get_symbol_table().get_variable("x")->ref();
 
     x = a;
     const double a2 = expression.value();
@@ -80,13 +65,8 @@ inline bool trapezoid(double a, double b, unsigned n, const std::string& expr, d
     return true;
 }
 
-inline bool simpson(double a, double b, unsigned n, const std::string& expr, double& result) {
-    double x = 0.0;
-
-    exprtk::expression<double> expression;
-    if (!detail::compile_expression(expression, expr, x)) {
-        return false;
-    }
+inline bool simpson(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
+    double& x = expression.get_symbol_table().get_variable("x")->ref();
 
     const double h = (b - a) / (2 * n);
     const double h2 = 2 * h;

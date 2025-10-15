@@ -6,7 +6,6 @@
 #include <QPushButton>
 #include <QLabel>
 
-#include "../../integral.hpp"
 #include "base_tab.hpp"
 
 class SimpsonTab : public MethodTab {
@@ -18,9 +17,7 @@ public:
     ~SimpsonTab() = default;
 
 private:
-    virtual bool calculate(double a, double b, unsigned n, const std::string& expr, double& result) override {
-        return integral::simpson(a, b, n, expr, result);
-    }
+    virtual bool calculate(double a, double b, unsigned n, const std::string& expr, double& result) override;
 };
 
 #endif // TABS_TRAPEZOID_TAB_HPP_

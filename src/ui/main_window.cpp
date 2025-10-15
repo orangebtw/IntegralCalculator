@@ -17,6 +17,8 @@
 MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Калькулятор интегралов");
     setMinimumSize(800, 600);
+    const QSize screenSize = QGuiApplication::primaryScreen()->geometry().size();
+    resize(QSize(screenSize.width() * 0.9, screenSize.height() * 0.8));
     setupUi();
 }
 

@@ -6,8 +6,6 @@
 #include <QPushButton>
 #include <QLabel>
 
-#include "../../integral.hpp"
-
 #include "base_tab.hpp"
 
 class LeftRectanglesTab : public MethodTab {
@@ -20,9 +18,7 @@ public:
     ~LeftRectanglesTab() = default;
 
 private:
-    virtual bool calculate(double a, double b, unsigned n, const std::string& expr, double& result) override {
-        return integral::rectangles_left(a, b, n, expr, result);
-    }
+    virtual bool calculate(double a, double b, unsigned n, const std::string& expr, double& result) override;
 };
 
 #endif // TABS_LEFT_RECTANGLES_TAB_HPP_

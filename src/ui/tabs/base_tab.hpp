@@ -5,6 +5,11 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
+#include <QChart>
+#include <QValueAxis>
+#include <QLineSeries>
+#include <QBarSeries>
+#include <QChartView>
 
 class MethodTab : public QWidget {
     Q_OBJECT
@@ -25,6 +30,14 @@ protected:
     QLineEdit* mExpressionEdit = nullptr;
     QPushButton* mCalculateButton = nullptr;
     QLabel* mResultLabel = nullptr;
+
+    QChart* mChart = nullptr;
+    QChartView* mChartView = nullptr;
+    QValueAxis* mAxisX = nullptr;
+    QValueAxis* mAxisY = nullptr;
+
+    QColor mFillColor = QColor("#75FF0000");
+    QColor mBorderColor = Qt::red;
 };
 
 #endif

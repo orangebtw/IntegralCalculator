@@ -1,8 +1,13 @@
-#include "base_tab.hpp"
-
 #include <QDoubleValidator>
 #include <QIntValidator>
 #include <QHBoxLayout>
+#include <QLineSeries>
+#include <QChart>
+#include <QChartView>
+#include <QValueAxis>
+
+#include "base_tab.hpp"
+#include "../widgets/chartview.hpp"
 
 void MethodTab::setupUi(const QString& title) {
     QDoubleValidator* doubleValidator = new QDoubleValidator();
@@ -29,8 +34,23 @@ void MethodTab::setupUi(const QString& title) {
     mResultLabel->setStyleSheet("QLabel{ font-size: 18px; }");
 
     QLabel* titleLabel = new QLabel(title);
-    titleLabel->setStyleSheet("QLabel{ font-size: 24px; }");
+    titleLabel->setStyleSheet("QLabel{ font-size: 36px; }");
     titleLabel->setAlignment(Qt::AlignHCenter);
+
+    mChart = new QChart();
+    mChart->legend()->hide();
+
+    mAxisX = new QValueAxis();
+    mAxisX->setLabelFormat("%i");
+    mChart->addAxis(mAxisX, Qt::AlignBottom);
+    
+    mAxisY = new QValueAxis();
+    mAxisY->setLabelFormat("%.2f");
+    mAxisY->setMin(0);
+    mChart->addAxis(mAxisY, Qt::AlignLeft);
+
+    mChartView = new ChartView(mChart);
+    mChartView->setRenderHint(QPainter::Antialiasing);
 
     QVBoxLayout* controlsLayout = new QVBoxLayout();
     controlsLayout->setAlignment(Qt::AlignTop);
@@ -42,6 +62,7 @@ void MethodTab::setupUi(const QString& title) {
     controlsLayout->addWidget(mStepsAmountEdit);
     controlsLayout->addWidget(mCalculateButton);
     controlsLayout->addWidget(mResultLabel);
+    controlsLayout->addWidget(mChartView);
 
     QWidget* controlsWidget = new QWidget();
     controlsWidget->setLayout(controlsLayout);
@@ -62,7 +83,7 @@ void MethodTab::setupUi(const QString& title) {
 
         if (success) {
             palette.setColor(mResultLabel->foregroundRole(), Qt::black);
-            mResultLabel->setText(QString::number(result));
+            mResultLabel->setText(QString("Результат: %1").arg(result));
         } else {
             palette.setColor(mResultLabel->foregroundRole(), Qt::red);
             mResultLabel->setText("Ошибка.");
