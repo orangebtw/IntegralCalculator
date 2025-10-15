@@ -27,14 +27,14 @@ bool RightRectanglesTab::calculate(double a, double b, unsigned n, const std::st
         QPointF p2(x, expression.value());
 
         QLineSeries* lowerSeries = new QLineSeries();
-        lowerSeries->append(p1.x(), 0);
-        lowerSeries->append(p1.x(), 0);
         lowerSeries->setUseOpenGL(true);
+        lowerSeries->append(p1.x(), 0);
+        lowerSeries->append(p2.x(), 0);
         
         QLineSeries* upperSeries = new QLineSeries();
+        upperSeries->setUseOpenGL(true);
         upperSeries->append(p1);
         upperSeries->append(p2.x(), p1.y());
-        upperSeries->setUseOpenGL(true);
 
         if (p2.y() < 0) {
             std::swap(lowerSeries, upperSeries);
