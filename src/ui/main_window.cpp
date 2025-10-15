@@ -6,6 +6,8 @@
 #include <QPalette>
 #include <QLabel>
 #include <QBoxLayout>
+#include <QOpenGLWidget>
+#include <QStackedWidget>
 
 #include "main_window.hpp"
 
@@ -82,9 +84,16 @@ void MainWindow::setupUi() {
 
     m_main_container_layout->addWidget(menuContainer);
     m_main_container_layout->addWidget(m_content_widget.get());
-
+    
     QWidget* mainContainer = new QWidget();
     mainContainer->setLayout(m_main_container_layout);
+
+    // This is a hack. It's needed to initialize OpenGL at the start of the application, so later window is not recreated
+    // when plotting a series with "useOpenGL" enabled.
+    // Using QStackedWidget here to initialize OpenGL with "QOpenGLWidget" and keep it hidden forever.
+    QStackedWidget* stackedWidget = new QStackedWidget();
+    stackedWidget->addWidget(mainContainer);
+    stackedWidget->addWidget(new QOpenGLWidget());
 
     QObject::connect(m_left_rectangles_tab_button, &QPushButton::clicked, [this] {
         if (m_current_method == IntegralMethod::LeftRectangles)
@@ -122,5 +131,5 @@ void MainWindow::setupUi() {
         m_current_method = IntegralMethod::Simpson;
     });
 
-    setCentralWidget(mainContainer);
+    setCentralWidget(stackedWidget);
 }
