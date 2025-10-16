@@ -11,9 +11,14 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Charts)
+find_package(Qt6 COMPONENTS Core Widgets Charts)
+if(NOT Qt6_FOUND)
+    find_package(Qt5 REQUIRED COMPONENTS Core Widgets Charts)
+endif()
 
-qt_standard_project_setup()
+if(Qt6_FOUND)
+    qt_standard_project_setup()
+endif()
 
 set(RELEASE_BUILD OFF)
 set(DEBUG_INFO ON)
@@ -53,6 +58,14 @@ endif()
 
 file(GLOB_RECURSE SRC CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp")
 
-qt_add_executable(${PROJECT_NAME} ${SRC})
+if(Qt6_FOUND)
+    qt_add_executable(${PROJECT_NAME} ${SRC})
+else()
+    add_executable(${PROJECT_NAME} ${SRC})
+endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Charts)
+if(Qt6_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Charts)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets Qt5::Charts)
+endif()

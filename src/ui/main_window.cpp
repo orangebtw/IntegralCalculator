@@ -8,6 +8,8 @@
 #include <QBoxLayout>
 #include <QOpenGLWidget>
 #include <QStackedWidget>
+#include <QGuiApplication>
+#include <QScreen>
 
 #include "main_window.hpp"
 
@@ -33,21 +35,25 @@ void MainWindow::setupUi() {
     m_left_rectangles_tab_button->setText("Прямоугольники левых частей");
     m_left_rectangles_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_left_rectangles_tab_button->setFixedHeight(40);
+    m_left_rectangles_tab_button->setAutoFillBackground(true);
 
     m_right_rectangles_tab_button = new QPushButton();
     m_right_rectangles_tab_button->setText("Прямоугольники правых частей");
     m_right_rectangles_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_right_rectangles_tab_button->setFixedHeight(40);
+    m_right_rectangles_tab_button->setAutoFillBackground(true);
 
     m_trapezoid_tab_button = new QPushButton();
     m_trapezoid_tab_button->setText("Трапеция");
     m_trapezoid_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_trapezoid_tab_button->setFixedHeight(40);
+    m_trapezoid_tab_button->setAutoFillBackground(true);
 
     m_simpson_tab_button = new QPushButton();
     m_simpson_tab_button->setText("Симпсон");
     m_simpson_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_simpson_tab_button->setFixedHeight(40);
+    m_simpson_tab_button->setAutoFillBackground(true);
 
     QLabel* menuContainerTitle = new QLabel("Методы");
     QPalette titlePalette = menuContainerTitle->palette();

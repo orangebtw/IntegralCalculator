@@ -2,13 +2,15 @@
 
 #include "chartview.hpp"
 
+using namespace QtCharts;
+
 ChartView::ChartView(QChart* chart, QWidget *parent) : QChartView(chart, parent) {
     setDragMode(QGraphicsView::NoDrag);
     setMouseTracking(true);
 }
 
 void ChartView::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::RightButton) {
+    if (event->button() == Qt::LeftButton) {
         mLastMousePos = event->pos();
         event->accept();
     }
@@ -54,7 +56,7 @@ void ChartView::keyPressEvent(QKeyEvent* event) {
 }
 
 void ChartView::mouseMoveEvent(QMouseEvent *event) {
-    if (chart() && event->buttons() & Qt::RightButton) {
+    if (chart() && event->buttons() & Qt::LeftButton) {
         event->accept();
         const QRectF bounds = chart()->plotArea();
 

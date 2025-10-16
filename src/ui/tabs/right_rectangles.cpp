@@ -6,6 +6,8 @@
 #include "../../integral.hpp"
 #include "../../utils.hpp"
 
+using namespace QtCharts;
+
 bool RightRectanglesTab::calculate(double a, double b, unsigned n, const std::string& expr, double& result)  {
     mChart->removeAllSeries();
 

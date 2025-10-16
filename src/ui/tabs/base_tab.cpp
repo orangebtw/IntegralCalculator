@@ -5,11 +5,13 @@
 #include <QChart>
 #include <QChartView>
 #include <QValueAxis>
-#include <qnamespace.h>
+#include <QLineEdit>
 
 #include "base_tab.hpp"
 #include "../widgets/chartview.hpp"
 #include "../../exprtk.hpp"
+
+using namespace QtCharts;
 
 void MethodTab::setupUi(const QString& title) {
     QDoubleValidator* boundValidator = new QDoubleValidator();
@@ -41,6 +43,7 @@ void MethodTab::setupUi(const QString& title) {
 
     mChart = new QChart();
     mChart->legend()->hide();
+    mChart->setContentsMargins(0, 0, 0, 0);
 
     mAxisX = new QValueAxis();
     mAxisX->setLabelFormat("%i");
@@ -55,6 +58,7 @@ void MethodTab::setupUi(const QString& title) {
     mChartView = new ChartView(mChart);
     mChartView->setRenderHint(QPainter::Antialiasing);
     mChartView->setRenderHint(QPainter::SmoothPixmapTransform);
+    mChartView->setContentsMargins(0, 0, 0, 0);
 
     QVBoxLayout* controlsLayout = new QVBoxLayout();
     controlsLayout->setAlignment(Qt::AlignTop);

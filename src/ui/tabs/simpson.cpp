@@ -7,6 +7,8 @@
 #include "../../integral.hpp"
 #include "../../utils.hpp"
 
+using namespace QtCharts;
+
 static double parabola(QPointF p1, QPointF p2, QPointF p3, float x) {
     return p1.y() * ((x - p2.x())*(x - p3.x()))/((p1.x() - p2.x())*(p1.x() - p3.x())) +
            p2.y() * ((x - p1.x())*(x - p3.x()))/((p2.x() - p1.x())*(p2.x() - p3.x())) +

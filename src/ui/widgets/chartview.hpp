@@ -3,12 +3,12 @@
 
 #include <QChartView>
 
-class ChartView: public QChartView
+class ChartView: public QtCharts::QChartView
 {
     Q_OBJECT
 
 public:
-    ChartView(QChart* chart, QWidget *parent = 0);
+    ChartView(QtCharts::QChart* chart, QWidget *parent = 0);
 
 protected:
 

@@ -39,10 +39,10 @@ protected:
     QPushButton* mCalculateButton = nullptr;
     QLabel* mResultLabel = nullptr;
 
-    QChart* mChart = nullptr;
-    QChartView* mChartView = nullptr;
-    QValueAxis* mAxisX = nullptr;
-    QValueAxis* mAxisY = nullptr;
+    QtCharts::QChart* mChart = nullptr;
+    QtCharts::QChartView* mChartView = nullptr;
+    QtCharts::QValueAxis* mAxisX = nullptr;
+    QtCharts::QValueAxis* mAxisY = nullptr;
 
     QColor mFillColor = QColor("#75FF0000");
     QColor mBorderColor = Qt::red;
