@@ -10,11 +10,18 @@
 #include <QLineSeries>
 #include <QBarSeries>
 #include <QChartView>
+#include <QtGlobal>
 
 namespace exprtk {
     template <typename T>
     class expression;
 }
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    using QtCharts::QChartView;
+    using QtCharts::QChart;
+    using QtCharts::QValueAxis;
+#endif
 
 class MethodTab : public QWidget {
     Q_OBJECT
@@ -39,10 +46,10 @@ protected:
     QPushButton* mCalculateButton = nullptr;
     QLabel* mResultLabel = nullptr;
 
-    QtCharts::QChart* mChart = nullptr;
-    QtCharts::QChartView* mChartView = nullptr;
-    QtCharts::QValueAxis* mAxisX = nullptr;
-    QtCharts::QValueAxis* mAxisY = nullptr;
+    QChart* mChart = nullptr;
+    QChartView* mChartView = nullptr;
+    QValueAxis* mAxisX = nullptr;
+    QValueAxis* mAxisY = nullptr;
 
     QColor mFillColor = QColor("#75FF0000");
     QColor mBorderColor = Qt::red;

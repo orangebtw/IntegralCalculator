@@ -2,13 +2,19 @@
 #define UI_CHARTVIEW_HPP_
 
 #include <QChartView>
+#include <QtGlobal>
 
-class ChartView: public QtCharts::QChartView
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    using QtCharts::QChartView;
+    using QtCharts::QChart;
+#endif
+
+class ChartView: public QChartView
 {
     Q_OBJECT
 
 public:
-    ChartView(QtCharts::QChart* chart, QWidget *parent = 0);
+    ChartView(QChart* chart, QWidget *parent = 0);
 
 protected:
 

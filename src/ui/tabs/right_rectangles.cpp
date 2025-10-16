@@ -6,7 +6,9 @@
 #include "../../integral.hpp"
 #include "../../utils.hpp"
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    using namespace QtCharts;
+#endif
 
 bool RightRectanglesTab::calculate(double a, double b, unsigned n, const std::string& expr, double& result)  {
     mChart->removeAllSeries();

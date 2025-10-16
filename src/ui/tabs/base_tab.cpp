@@ -11,7 +11,9 @@
 #include "../widgets/chartview.hpp"
 #include "../../exprtk.hpp"
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    using namespace QtCharts;
+#endif
 
 void MethodTab::setupUi(const QString& title) {
     QDoubleValidator* boundValidator = new QDoubleValidator();

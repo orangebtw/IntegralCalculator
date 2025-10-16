@@ -2,7 +2,9 @@
 
 #include "chartview.hpp"
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    using namespace QtCharts;
+#endif
 
 ChartView::ChartView(QChart* chart, QWidget *parent) : QChartView(chart, parent) {
     setDragMode(QGraphicsView::NoDrag);
