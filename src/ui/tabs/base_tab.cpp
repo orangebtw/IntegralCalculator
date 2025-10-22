@@ -9,6 +9,8 @@
 
 #include "base_tab.hpp"
 #include "../widgets/chartview.hpp"
+#include "../widgets/hboxwidget.hpp"
+#include "../utils.hpp"
 #include "../../exprtk.hpp"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -19,28 +21,43 @@ void MethodTab::setupUi(const QString& title) {
     QDoubleValidator* boundValidator = new QDoubleValidator();
     QIntValidator* stepsValidator = new QIntValidator(1, std::numeric_limits<int>::max());
 
+    HBoxWidget* lowerBoundContainer = new HBoxWidget();
+    QLabel* lowerBoundLabel = CreateLabel("Нижний предел:", 14.0f);
     mLowerBoundEdit = new QLineEdit();
-    mLowerBoundEdit->setPlaceholderText("Нижний предел");
     mLowerBoundEdit->setValidator(boundValidator);
+    lowerBoundContainer->addWidget(lowerBoundLabel);
+    lowerBoundContainer->addWidget(mLowerBoundEdit);
+    lowerBoundContainer->setSpacing(10);
 
+    HBoxWidget* upperBoundContainer = new HBoxWidget();
+    QLabel* upperBoundLabel = CreateLabel("Верхний предел:", 14.0f);
     mUpperBoundEdit = new QLineEdit();
-    mUpperBoundEdit->setPlaceholderText("Верхний предел");
     mUpperBoundEdit->setValidator(boundValidator);
+    upperBoundContainer->addWidget(upperBoundLabel);
+    upperBoundContainer->addWidget(mUpperBoundEdit);
+    upperBoundContainer->setSpacing(10);
 
+    HBoxWidget* stepsAmountContainer = new HBoxWidget();
+    QLabel* stepsAmountLabel = CreateLabel("Кол-во шагов:", 14.0f);
     mStepsAmountEdit = new QLineEdit();
-    mStepsAmountEdit->setPlaceholderText("Кол-во шагов");
     mStepsAmountEdit->setValidator(stepsValidator);
+    stepsAmountContainer->addWidget(stepsAmountLabel);
+    stepsAmountContainer->addWidget(mStepsAmountEdit);
+    stepsAmountContainer->setSpacing(10);
 
+    HBoxWidget* expressionContainer = new HBoxWidget();
+    QLabel* expressionLabel = CreateLabel("Подинтегральная функция:", 14.0f);
     mExpressionEdit = new QLineEdit();
-    mExpressionEdit->setPlaceholderText("Подинтегральная функция");
+    expressionContainer->addWidget(expressionLabel);
+    expressionContainer->addWidget(mExpressionEdit);
+    expressionContainer->setSpacing(10);
 
     mCalculateButton = new QPushButton("Вычислить");
 
     mResultLabel = new QLabel();
-    mResultLabel->setStyleSheet("QLabel{ font-size: 18px; }");
+    SetFont(mResultLabel, 18.0f);
 
-    QLabel* titleLabel = new QLabel(title);
-    titleLabel->setStyleSheet("QLabel{ font-size: 36px; }");
+    QLabel* titleLabel = CreateLabel(title, 36.0f);
     titleLabel->setAlignment(Qt::AlignHCenter);
 
     mChart = new QChart();
@@ -66,10 +83,10 @@ void MethodTab::setupUi(const QString& title) {
     controlsLayout->setAlignment(Qt::AlignTop);
     controlsLayout->setSpacing(10);
     controlsLayout->addWidget(titleLabel);
-    controlsLayout->addWidget(mExpressionEdit);
-    controlsLayout->addWidget(mLowerBoundEdit);
-    controlsLayout->addWidget(mUpperBoundEdit);
-    controlsLayout->addWidget(mStepsAmountEdit);
+    controlsLayout->addWidget(expressionContainer);
+    controlsLayout->addWidget(lowerBoundContainer);
+    controlsLayout->addWidget(upperBoundContainer);
+    controlsLayout->addWidget(stepsAmountContainer);
     controlsLayout->addWidget(mCalculateButton);
     controlsLayout->addWidget(mResultLabel);
     controlsLayout->addWidget(mChartView);
