@@ -26,34 +26,43 @@ MainWindow::MainWindow() : QMainWindow() {
     setupUi();
 }
 
+namespace MethodTabs {
+    enum : uint8_t {
+        LeftRectangles = 0,
+        RightRectangles,
+        Trapezoid,
+        Simpson
+    };
+}
+
 void MainWindow::setupUi() {
-    m_main_container_layout = new QHBoxLayout();
-    m_main_container_layout->setContentsMargins(0, 0, 0, 0);
-    m_main_container_layout->setSpacing(0);
+    QHBoxLayout* mainContainerLayout = new QHBoxLayout();
+    mainContainerLayout->setContentsMargins(0, 0, 0, 0);
+    mainContainerLayout->setSpacing(0);
 
-    m_left_rectangles_tab_button = new QPushButton();
-    m_left_rectangles_tab_button->setText("Прямоугольники левых частей");
-    m_left_rectangles_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    m_left_rectangles_tab_button->setFixedHeight(40);
-    m_left_rectangles_tab_button->setAutoFillBackground(true);
+    mLeftRectanglesTabButton = new QPushButton();
+    mLeftRectanglesTabButton->setText("Прямоугольники левых частей");
+    mLeftRectanglesTabButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mLeftRectanglesTabButton->setFixedHeight(40);
+    mLeftRectanglesTabButton->setAutoFillBackground(true);
 
-    m_right_rectangles_tab_button = new QPushButton();
-    m_right_rectangles_tab_button->setText("Прямоугольники правых частей");
-    m_right_rectangles_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    m_right_rectangles_tab_button->setFixedHeight(40);
-    m_right_rectangles_tab_button->setAutoFillBackground(true);
+    mRightRectanglesTabButton = new QPushButton();
+    mRightRectanglesTabButton->setText("Прямоугольники правых частей");
+    mRightRectanglesTabButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mRightRectanglesTabButton->setFixedHeight(40);
+    mRightRectanglesTabButton->setAutoFillBackground(true);
 
-    m_trapezoid_tab_button = new QPushButton();
-    m_trapezoid_tab_button->setText("Трапеция");
-    m_trapezoid_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    m_trapezoid_tab_button->setFixedHeight(40);
-    m_trapezoid_tab_button->setAutoFillBackground(true);
+    mTrapezoidTabButton = new QPushButton();
+    mTrapezoidTabButton->setText("Трапеция");
+    mTrapezoidTabButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mTrapezoidTabButton->setFixedHeight(40);
+    mTrapezoidTabButton->setAutoFillBackground(true);
 
-    m_simpson_tab_button = new QPushButton();
-    m_simpson_tab_button->setText("Симпсон");
-    m_simpson_tab_button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    m_simpson_tab_button->setFixedHeight(40);
-    m_simpson_tab_button->setAutoFillBackground(true);
+    mSimpsonTabButton = new QPushButton();
+    mSimpsonTabButton->setText("Симпсон");
+    mSimpsonTabButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    mSimpsonTabButton->setFixedHeight(40);
+    mSimpsonTabButton->setAutoFillBackground(true);
 
     QLabel* menuContainerTitle = new QLabel("Методы");
     QPalette titlePalette = menuContainerTitle->palette();
@@ -77,22 +86,25 @@ void MainWindow::setupUi() {
     menuLayout->setSpacing(20);
     menuLayout->addStretch();
     menuLayout->addWidget(menuContainerTitle);
-    menuLayout->addWidget(m_left_rectangles_tab_button);
-    menuLayout->addWidget(m_right_rectangles_tab_button);
-    menuLayout->addWidget(m_trapezoid_tab_button);
-    menuLayout->addWidget(m_simpson_tab_button);
+    menuLayout->addWidget(mLeftRectanglesTabButton);
+    menuLayout->addWidget(mRightRectanglesTabButton);
+    menuLayout->addWidget(mTrapezoidTabButton);
+    menuLayout->addWidget(mSimpsonTabButton);
     menuLayout->addStretch();
 
     menuContainer->setLayout(menuLayout);
 
-    m_content_widget.reset(new LeftRectanglesTab()); 
-    m_current_method = IntegralMethod::LeftRectangles;
+    mContentWidget = new QStackedWidget();
+    mContentWidget->insertWidget(MethodTabs::LeftRectangles, new LeftRectanglesTab());
+    mContentWidget->insertWidget(MethodTabs::RightRectangles, new RightRectanglesTab());
+    mContentWidget->insertWidget(MethodTabs::Trapezoid, new TrapezoidTab());
+    mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonTab());
 
-    m_main_container_layout->addWidget(menuContainer);
-    m_main_container_layout->addWidget(m_content_widget.get());
+    mainContainerLayout->addWidget(menuContainer);
+    mainContainerLayout->addWidget(mContentWidget);
     
     QWidget* mainContainer = new QWidget();
-    mainContainer->setLayout(m_main_container_layout);
+    mainContainer->setLayout(mainContainerLayout);
 
     // This is a hack. It's needed to initialize OpenGL at the start of the application, so later window is not recreated
     // when plotting a series with "useOpenGL" enabled.
@@ -101,40 +113,20 @@ void MainWindow::setupUi() {
     stackedWidget->addWidget(mainContainer);
     stackedWidget->addWidget(new QOpenGLWidget());
 
-    QObject::connect(m_left_rectangles_tab_button, &QPushButton::clicked, [this] {
-        if (m_current_method == IntegralMethod::LeftRectangles)
-            return;
-
-        m_content_widget.reset(new LeftRectanglesTab());
-        m_main_container_layout->addWidget(m_content_widget.get());
-        m_current_method = IntegralMethod::LeftRectangles;
+    QObject::connect(mLeftRectanglesTabButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::LeftRectangles);
     });
 
-    QObject::connect(m_right_rectangles_tab_button, &QPushButton::clicked, [this] {
-        if (m_current_method == IntegralMethod::RightRectangles)
-            return;
-
-        m_content_widget.reset(new RightRectanglesTab());
-        m_main_container_layout->addWidget(m_content_widget.get());
-        m_current_method = IntegralMethod::RightRectangles;
+    QObject::connect(mRightRectanglesTabButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::RightRectangles);
     });
 
-    QObject::connect(m_trapezoid_tab_button, &QPushButton::clicked, [this] {
-        if (m_current_method == IntegralMethod::Trapezoid)
-            return;
-
-        m_content_widget.reset(new TrapezoidTab());
-        m_main_container_layout->addWidget(m_content_widget.get());
-        m_current_method = IntegralMethod::Trapezoid;
+    QObject::connect(mTrapezoidTabButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::Trapezoid);
     });
 
-    QObject::connect(m_simpson_tab_button, &QPushButton::clicked, [this] {
-        if (m_current_method == IntegralMethod::Simpson)
-            return;
-
-        m_content_widget.reset(new SimpsonTab());
-        m_main_container_layout->addWidget(m_content_widget.get());
-        m_current_method = IntegralMethod::Simpson;
+    QObject::connect(mSimpsonTabButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::Simpson);
     });
 
     setCentralWidget(stackedWidget);

@@ -4,14 +4,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QHBoxLayout>
-#include <memory>
-
-enum class IntegralMethod : uint8_t {
-    LeftRectangles = 0,
-    RightRectangles,
-    Trapezoid,
-    Simpson,
-};
+#include <QStackedWidget>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -24,13 +17,11 @@ private:
     void setupUi();
 
 private:
-    QHBoxLayout* m_main_container_layout = nullptr;
-    std::unique_ptr<QWidget>  m_content_widget = nullptr;
-    QPushButton* m_left_rectangles_tab_button = nullptr;
-    QPushButton* m_right_rectangles_tab_button = nullptr;
-    QPushButton* m_trapezoid_tab_button = nullptr;
-    QPushButton* m_simpson_tab_button = nullptr;
-    IntegralMethod m_current_method = IntegralMethod::LeftRectangles;
+    QStackedWidget* mContentWidget = nullptr;
+    QPushButton* mLeftRectanglesTabButton = nullptr;
+    QPushButton* mRightRectanglesTabButton = nullptr;
+    QPushButton* mTrapezoidTabButton = nullptr;
+    QPushButton* mSimpsonTabButton = nullptr;
 };
 
 #endif // APP_HPP_
