@@ -15,13 +15,15 @@ public:
 
 private:
     void setupUi();
+    QPushButton* createPageButton(const QString& title);
 
 private:
     QStackedWidget* mContentWidget = nullptr;
-    QPushButton* mLeftRectanglesTabButton = nullptr;
-    QPushButton* mRightRectanglesTabButton = nullptr;
-    QPushButton* mTrapezoidTabButton = nullptr;
-    QPushButton* mSimpsonTabButton = nullptr;
+    QPushButton* mLeftRectanglesPageButton = nullptr;
+    QPushButton* mRightRectanglesPageButton = nullptr;
+    QPushButton* mTrapezoidPageButton = nullptr;
+    QPushButton* mSimpsonPageButton = nullptr;
+    QPushButton* mVariableStepPageButton = nullptr;
 };
 
 #endif // APP_HPP_

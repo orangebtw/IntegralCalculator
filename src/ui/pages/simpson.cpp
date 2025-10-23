@@ -17,14 +17,14 @@ static double parabola(QPointF p1, QPointF p2, QPointF p3, float x) {
            p3.y() * ((x - p1.x())*(x - p2.x()))/((p3.x() - p1.x())*(p3.x() - p2.x()));
 }
 
-bool SimpsonTab::calculate(double a, double b, unsigned n, const std::string& expr, double& result)  {
+std::optional<SimpsonPage::CalculateResult> SimpsonPage::calculate(double a, double b, unsigned n, const std::string& expr) {
     mChart->removeAllSeries();
 
     double x = 0.0;
     
     exprtk::expression<double> expression;
     if (!utils::compile_expression(expression, expr, x)) {
-        return false;
+        return std::nullopt;
     }
 
     double min, max;
@@ -76,5 +76,9 @@ bool SimpsonTab::calculate(double a, double b, unsigned n, const std::string& ex
     mAxisX->setRange(a, b);
     mAxisY->setRange(min, max);
 
-    return integral::simpson(a, b, n, expression, result);
+    double result = integral::simpson(a, b, n, expression);
+
+    return CalculateResult {
+        .value = result
+    };
 }

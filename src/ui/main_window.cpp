@@ -13,10 +13,11 @@
 
 #include "main_window.hpp"
 
-#include "tabs/right_rectangles.hpp"
-#include "tabs/trapezoid.hpp"
-#include "tabs/left_rectangles.hpp"
-#include "tabs/simpson.hpp"
+#include "pages/right_rectangles.hpp"
+#include "pages/trapezoid.hpp"
+#include "pages/left_rectangles.hpp"
+#include "pages/simpson.hpp"
+#include "pages/variable_step.hpp"
 
 MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Калькулятор интегралов");
@@ -31,8 +32,18 @@ namespace MethodTabs {
         LeftRectangles = 0,
         RightRectangles,
         Trapezoid,
-        Simpson
+        Simpson,
+        VariableStep
     };
+}
+
+QPushButton* MainWindow::createPageButton(const QString& title) {
+    QPushButton* button = new QPushButton();
+    button->setText(title);
+    button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    button->setFixedHeight(40);
+    button->setAutoFillBackground(true);
+    return button;
 }
 
 void MainWindow::setupUi() {
@@ -40,29 +51,11 @@ void MainWindow::setupUi() {
     mainContainerLayout->setContentsMargins(0, 0, 0, 0);
     mainContainerLayout->setSpacing(0);
 
-    mLeftRectanglesTabButton = new QPushButton();
-    mLeftRectanglesTabButton->setText("Прямоугольники левых частей");
-    mLeftRectanglesTabButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    mLeftRectanglesTabButton->setFixedHeight(40);
-    mLeftRectanglesTabButton->setAutoFillBackground(true);
-
-    mRightRectanglesTabButton = new QPushButton();
-    mRightRectanglesTabButton->setText("Прямоугольники правых частей");
-    mRightRectanglesTabButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    mRightRectanglesTabButton->setFixedHeight(40);
-    mRightRectanglesTabButton->setAutoFillBackground(true);
-
-    mTrapezoidTabButton = new QPushButton();
-    mTrapezoidTabButton->setText("Трапеция");
-    mTrapezoidTabButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    mTrapezoidTabButton->setFixedHeight(40);
-    mTrapezoidTabButton->setAutoFillBackground(true);
-
-    mSimpsonTabButton = new QPushButton();
-    mSimpsonTabButton->setText("Симпсон");
-    mSimpsonTabButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    mSimpsonTabButton->setFixedHeight(40);
-    mSimpsonTabButton->setAutoFillBackground(true);
+    mLeftRectanglesPageButton = createPageButton("Прямоугольники левых частей");
+    mRightRectanglesPageButton = createPageButton("Прямоугольники правых частей");
+    mTrapezoidPageButton = createPageButton("Трапеция");
+    mSimpsonPageButton = createPageButton("Симпсон");
+    mVariableStepPageButton = createPageButton("Переменный шаг");
 
     QLabel* menuContainerTitle = new QLabel("Методы");
     QPalette titlePalette = menuContainerTitle->palette();
@@ -86,19 +79,21 @@ void MainWindow::setupUi() {
     menuLayout->setSpacing(20);
     menuLayout->addStretch();
     menuLayout->addWidget(menuContainerTitle);
-    menuLayout->addWidget(mLeftRectanglesTabButton);
-    menuLayout->addWidget(mRightRectanglesTabButton);
-    menuLayout->addWidget(mTrapezoidTabButton);
-    menuLayout->addWidget(mSimpsonTabButton);
+    menuLayout->addWidget(mLeftRectanglesPageButton);
+    menuLayout->addWidget(mRightRectanglesPageButton);
+    menuLayout->addWidget(mTrapezoidPageButton);
+    menuLayout->addWidget(mSimpsonPageButton);
+    menuLayout->addWidget(mVariableStepPageButton);
     menuLayout->addStretch();
 
     menuContainer->setLayout(menuLayout);
 
     mContentWidget = new QStackedWidget();
-    mContentWidget->insertWidget(MethodTabs::LeftRectangles, new LeftRectanglesTab());
-    mContentWidget->insertWidget(MethodTabs::RightRectangles, new RightRectanglesTab());
-    mContentWidget->insertWidget(MethodTabs::Trapezoid, new TrapezoidTab());
-    mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonTab());
+    mContentWidget->insertWidget(MethodTabs::LeftRectangles, new LeftRectanglesPage());
+    mContentWidget->insertWidget(MethodTabs::RightRectangles, new RightRectanglesPage());
+    mContentWidget->insertWidget(MethodTabs::Trapezoid, new TrapezoidPage());
+    mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonPage());
+    mContentWidget->insertWidget(MethodTabs::VariableStep, new VariableStepPage());
 
     mainContainerLayout->addWidget(menuContainer);
     mainContainerLayout->addWidget(mContentWidget);
@@ -113,20 +108,24 @@ void MainWindow::setupUi() {
     stackedWidget->addWidget(mainContainer);
     stackedWidget->addWidget(new QOpenGLWidget());
 
-    QObject::connect(mLeftRectanglesTabButton, &QPushButton::clicked, [this] {
+    QObject::connect(mLeftRectanglesPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::LeftRectangles);
     });
 
-    QObject::connect(mRightRectanglesTabButton, &QPushButton::clicked, [this] {
+    QObject::connect(mRightRectanglesPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::RightRectangles);
     });
 
-    QObject::connect(mTrapezoidTabButton, &QPushButton::clicked, [this] {
+    QObject::connect(mTrapezoidPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::Trapezoid);
     });
 
-    QObject::connect(mSimpsonTabButton, &QPushButton::clicked, [this] {
+    QObject::connect(mSimpsonPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::Simpson);
+    });
+
+    QObject::connect(mVariableStepPageButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::VariableStep);
     });
 
     setCentralWidget(stackedWidget);

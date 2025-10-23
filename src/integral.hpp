@@ -7,33 +7,31 @@
 
 namespace integral {
 
-inline bool rectangles_left(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
+inline double rectangles_left(double a, double b, unsigned n, exprtk::expression<double>& expression) {
     double& x = expression.get_symbol_table().get_variable("x")->ref();
 
     const double h = (b - a) / n;
-    result = 0.0f;
+    double result = 0.0f;
     for (x = a; x <= b - h; x += h) {
         result += expression.value();
     }
     result *= h;
-
-    return true;
+    return result;
 }
 
-inline bool rectangles_right(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
+inline double rectangles_right(double a, double b, unsigned n, exprtk::expression<double>& expression) {
     double& x = expression.get_symbol_table().get_variable("x")->ref();
 
     const double h = (b - a) / n;
-    result = 0.0f;
+    double result = 0.0f;
     for (x = a + h; x <= b; x += h) {
         result += expression.value();
     }
     result *= h;
-
-    return true;
+    return result;
 }
 
-inline bool trapezoid(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
+inline double trapezoid(double a, double b, unsigned n, exprtk::expression<double>& expression) {
     double& x = expression.get_symbol_table().get_variable("x")->ref();
 
     x = a;
@@ -43,16 +41,15 @@ inline bool trapezoid(double a, double b, unsigned n, exprtk::expression<double>
     const double b2 = expression.value();
 
     const double h = (b - a) / n;
-    result = (a2 + b2) / 2.0;
+    double result = (a2 + b2) / 2.0;
     for (x = a + h; x <= b - h; x += h) {
         result += expression.value();
     }
     result *= h;
-
-    return true;
+    return result;
 }
 
-inline bool simpson(double a, double b, unsigned n, exprtk::expression<double>& expression, double& result) {
+inline double simpson(double a, double b, unsigned n, exprtk::expression<double>& expression) {
     double& x = expression.get_symbol_table().get_variable("x")->ref();
 
     const double h = (b - a) / (2 * n);
@@ -72,8 +69,39 @@ inline bool simpson(double a, double b, unsigned n, exprtk::expression<double>& 
     x = b;
     const double b2 = expression.value();
 
-    result = (h / 3.0) * (a2 + 4 * odd + 2 * even + b2);
-    return true;
+    return (h / 3.0) * (a2 + 4 * odd + 2 * even + b2);
+}
+
+inline double rectangles_left_variable(double a, double b, double eps, exprtk::expression<double>& expression, int& n) {
+    n = 2;
+
+    double i1 = 0.0;
+    double i2 = rectangles_left(a, b, n, expression);
+
+    while (fabs(i1 - i2) >= eps) {
+        n *= 2;
+
+        i1 = i2;
+        i2 = rectangles_left(a, b, n, expression);
+    }
+
+    return i2;
+}
+
+inline double rectangles_right_variable(double a, double b, double eps, exprtk::expression<double>& expression, int& n) {
+    n = 2;
+
+    double i1 = 0.0;
+    double i2 = rectangles_right(a, b, n, expression);
+
+    while (fabs(i1 - i2) >= eps) {
+        n *= 2;
+
+        i1 = i2;
+        i2 = rectangles_right(a, b, n, expression);
+    }
+
+    return i2;
 }
 
 }

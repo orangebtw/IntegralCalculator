@@ -10,14 +10,14 @@
     using namespace QtCharts;
 #endif
 
-bool RightRectanglesTab::calculate(double a, double b, unsigned n, const std::string& expr, double& result)  {
+std::optional<RightRectanglesPage::CalculateResult> RightRectanglesPage::calculate(double a, double b, unsigned n, const std::string& expr)  {
     mChart->removeAllSeries();
 
     double x = 0.0;
     
     exprtk::expression<double> expression;
     if (!utils::compile_expression(expression, expr, x)) {
-        return false;
+        return std::nullopt;
     }
 
     double min, max;
@@ -62,5 +62,8 @@ bool RightRectanglesTab::calculate(double a, double b, unsigned n, const std::st
     mAxisX->setRange(a, b);
     mAxisY->setRange(min, max);
 
-    return integral::rectangles_right(a, b, n, expression, result);
+    double result = integral::rectangles_right(a, b, n, expression);
+    return CalculateResult {
+        .value = result
+    };
 }
