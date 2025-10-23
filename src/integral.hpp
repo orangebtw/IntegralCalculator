@@ -104,6 +104,38 @@ inline double rectangles_right_variable(double a, double b, double eps, exprtk::
     return i2;
 }
 
+inline double trapezoid_variable(double a, double b, double eps, exprtk::expression<double>& expression, int& n) {
+    n = 2;
+
+    double i1 = 0.0;
+    double i2 = trapezoid(a, b, n, expression);
+
+    while (fabs(i1 - i2) >= eps) {
+        n *= 2;
+
+        i1 = i2;
+        i2 = trapezoid(a, b, n, expression);
+    }
+
+    return i2;
+}
+
+inline double simpson_variable(double a, double b, double eps, exprtk::expression<double>& expression, int& n) {
+    n = 2;
+
+    double i1 = 0.0;
+    double i2 = simpson(a, b, n, expression);
+
+    while (fabs(i1 - i2) >= eps) {
+        n *= 2;
+
+        i1 = i2;
+        i2 = simpson(a, b, n, expression);
+    }
+
+    return i2;
+}
+
 }
 
 #endif 

@@ -6,11 +6,13 @@
 #include <QChartView>
 #include <QValueAxis>
 #include <QLineEdit>
-#include <qvalidator.h>
+#include <QStackedWidget>
 
 #include "base.hpp"
 #include "../widgets/chartview.hpp"
 #include "../widgets/hboxwidget.hpp"
+#include "../widgets/vboxwidget.hpp"
+#include "../widgets/resizablestackedwidget.hpp"
 #include "../utils.hpp"
 #include "../../exprtk.hpp"
 
@@ -19,6 +21,10 @@
 #endif
 
 void MethodPageBase::setupUi(const QString& title) {
+    mMainLayout = new QVBoxLayout();
+    setLayout(mMainLayout);
+    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
     mCalculateButton = new QPushButton("Вычислить");
 
     mResultLabel = new QLabel();
@@ -46,53 +52,93 @@ void MethodPageBase::setupUi(const QString& title) {
     mChartView->setRenderHint(QPainter::SmoothPixmapTransform);
     mChartView->setContentsMargins(0, 0, 0, 0);
 
-    mMainLayout = new QVBoxLayout();
     mMainLayout->setAlignment(Qt::AlignTop);
-    mMainLayout->setSpacing(10);
+    mMainLayout->setSpacing(20);
     mMainLayout->addWidget(titleLabel);
 
-    setLayout(mMainLayout);
+    addBaseInputs();
+    mMainLayout->addWidget(mCalculateButton);
+    mMainLayout->addWidget(mResultLabel);
+    mMainLayout->addWidget(mChartView);
 }
 
 void MethodPageBase::addBaseInputs() {
     QDoubleValidator* validator = new QDoubleValidator();
     validator->setNotation(QDoubleValidator::StandardNotation);
 
-    HBoxWidget* lowerBoundContainer = new HBoxWidget();
-    QLabel* lowerBoundLabel = CreateLabel("Нижний предел:", 14.0f);
+    VBoxWidget* lowerBoundContainer = new VBoxWidget();
+    QLabel* lowerBoundLabel = CreateLabel("Нижний предел:", 12.0f);
     mLowerBoundEdit = new QLineEdit();
     mLowerBoundEdit->setValidator(validator);
     lowerBoundContainer->addWidget(lowerBoundLabel);
     lowerBoundContainer->addWidget(mLowerBoundEdit);
-    lowerBoundContainer->setSpacing(10);
+    lowerBoundContainer->setSpacing(5);
 
-    HBoxWidget* upperBoundContainer = new HBoxWidget();
-    QLabel* upperBoundLabel = CreateLabel("Верхний предел:", 14.0f);
+    VBoxWidget* upperBoundContainer = new VBoxWidget();
+    QLabel* upperBoundLabel = CreateLabel("Верхний предел:", 12.0f);
     mUpperBoundEdit = new QLineEdit();
     mUpperBoundEdit->setValidator(validator);
     upperBoundContainer->addWidget(upperBoundLabel);
     upperBoundContainer->addWidget(mUpperBoundEdit);
-    upperBoundContainer->setSpacing(10);
+    upperBoundContainer->setSpacing(5);
 
-    HBoxWidget* expressionContainer = new HBoxWidget();
-    QLabel* expressionLabel = CreateLabel("Подинтегральная функция:", 14.0f);
+    VBoxWidget* expressionContainer = new VBoxWidget();
+    QLabel* expressionLabel = CreateLabel("Подинтегральная функция:", 12.0f);
     mExpressionEdit = new QLineEdit();
     expressionContainer->addWidget(expressionLabel);
     expressionContainer->addWidget(mExpressionEdit);
-    expressionContainer->setSpacing(10);
+    expressionContainer->setSpacing(5);
+
+    HBoxWidget* variableStepContainer = new HBoxWidget();
+    QLabel* variableStepCheckLabel = CreateLabel("Переменный шаг:", 12.0f);
+    mVariableStepCheck = new QCheckBox();
+    mVariableStepCheck->setTristate(false);
+    variableStepContainer->addWidget(variableStepCheckLabel);
+    variableStepContainer->addWidget(mVariableStepCheck);
+    variableStepContainer->setSpacing(10);
+    variableStepContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+
+    VBoxWidget* epsilonInputContainer = new VBoxWidget();
+
+    QDoubleValidator* epsilonValidator = new QDoubleValidator();
+    epsilonValidator->setNotation(QDoubleValidator::StandardNotation);
+
+    QLabel* epsilonLabel = CreateLabel("Эпсилон:", 12.0f);
+    mEpsilonEdit = new QLineEdit();
+    mEpsilonEdit->setValidator(epsilonValidator);
+    epsilonInputContainer->addWidget(epsilonLabel);
+    epsilonInputContainer->addWidget(mEpsilonEdit);
+    epsilonInputContainer->setContentMargins(0, 0, 0, 0);
+    epsilonInputContainer->setSpacing(5);
+
+    VBoxWidget* stepsContainer = new VBoxWidget();
+
+    QIntValidator* stepsValidator = new QIntValidator(1, std::numeric_limits<int>::max());
+
+    QLabel* stepsLabel = CreateLabel("Кол-во шагов:", 12.0f);
+    mStepsAmountEdit = new QLineEdit();
+    mStepsAmountEdit->setValidator(epsilonValidator);
+    stepsContainer->addWidget(stepsLabel);
+    stepsContainer->addWidget(mStepsAmountEdit);
+    stepsContainer->setContentMargins(0, 0, 0, 0);
+    stepsContainer->setSpacing(5);
+
+    ResizableStackedWidget* stackedWidget = new ResizableStackedWidget();
+    stackedWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
+    stackedWidget->addWidget(stepsContainer);
+    stackedWidget->addWidget(epsilonInputContainer);
+    stackedWidget->adjustSize();
 
     mMainLayout->addWidget(expressionContainer);
     mMainLayout->addWidget(lowerBoundContainer);
     mMainLayout->addWidget(upperBoundContainer);
-}
+    mMainLayout->addWidget(variableStepContainer);
+    mMainLayout->addWidget(stackedWidget);
 
-void MethodPageBase::addOutputs() {
-    mMainLayout->addWidget(mResultLabel);
-    mMainLayout->addWidget(mChartView);
-}
-
-void MethodPageBase::addCalculateButton() {
-    mMainLayout->addWidget(mCalculateButton);
+    QObject::connect(mVariableStepCheck, &QCheckBox::checkStateChanged, [this, stackedWidget](Qt::CheckState state) {
+        const bool checked = (state == Qt::Checked);
+        stackedWidget->setCurrentIndex(checked);
+    });
 }
 
 void MethodPageBase::setCalculateButtonCallback(std::function<void()> callback) {
@@ -139,10 +185,10 @@ void MethodPageBase::setup_axis_lines(double x_min, double x_max, double y_min, 
     axisYSeries->attachAxis(mAxisY);
 }
 
-void MethodPageBase::plot_function(double a, double b, exprtk::expression<double>& expression, double& min, double& max) {
+void MethodPageBase::plot_function(double a, double b, exprtk::expression<double>& expression) {
     double& x = expression.get_symbol_table().get_variable("x")->ref();
-    max = std::numeric_limits<qreal>::min();
-    min = 0;
+    double max = std::numeric_limits<qreal>::min();
+    double min = 0;
     
     QLineSeries* lineSeries = new QLineSeries();
     lineSeries->setUseOpenGL(true);
@@ -159,24 +205,14 @@ void MethodPageBase::plot_function(double a, double b, exprtk::expression<double
     mChart->addSeries(lineSeries);
     lineSeries->attachAxis(mAxisX);
     lineSeries->attachAxis(mAxisY);
+
+    setup_axis_lines(a, b, min, max);
+
+    mAxisX->setRange(a, b);
+    mAxisY->setRange(min, max);
 }
 
-void FixedStepsMethodBase::addStepsInput() {
-    HBoxWidget* container = new HBoxWidget();
-
-    QIntValidator* validator = new QIntValidator(1, std::numeric_limits<int>::max());
-
-    QLabel* label = CreateLabel("Кол-во шагов:", 14.0f);
-    mStepsAmountEdit = new QLineEdit();
-    mStepsAmountEdit->setValidator(validator);
-    container->addWidget(label);
-    container->addWidget(mStepsAmountEdit);
-    container->setSpacing(10);
-
-    mMainLayout->addWidget(container);
-}
-
-bool FixedStepsMethodBase::validate() {
+bool MethodPageBase::validate() {
     std::optional<const char*> errorText;
 
     int n = 0;
@@ -187,53 +223,23 @@ bool FixedStepsMethodBase::validate() {
         errorText = "Ошибка: введите нижний предел.";
     } else if (mUpperBoundEdit->text().isEmpty()) {
         errorText = "Ошибка: введите верхний предел.";
-    } else if (mStepsAmountEdit->text().isEmpty()) {
-        errorText = "Ошибка: введите кол-во шагов.";
     } else {
-        n = mStepsAmountEdit->text().toInt();
-        if (n <= 0) {
-            errorText = "Ошибка: кол-во шагов должно быть больше нуля.";
+        const bool isVariableStep = (mVariableStepCheck->checkState() == Qt::Checked);
+
+        if (isVariableStep) {
+            if (mEpsilonEdit->text().isEmpty()) {
+                errorText = "Ошибка: введите эпсилон.";
+            }
+        } else {
+            if (mStepsAmountEdit->text().isEmpty()) {
+                errorText = "Ошибка: введите кол-во шагов.";
+            } else {
+                n = mStepsAmountEdit->text().toInt();
+                if (n <= 0) {
+                    errorText = "Ошибка: кол-во шагов должно быть больше нуля.";
+                }
+            }
         }
-    }
-
-    const bool hasError = errorText.has_value();
-    
-    if (hasError) {
-        setError(errorText.value());
-    }
-
-    return !hasError;
-}
-
-void VariableStepMethodBase::addEpsilonInput() {
-    HBoxWidget* container = new HBoxWidget();
-
-    QDoubleValidator* validator = new QDoubleValidator();
-    validator->setNotation(QDoubleValidator::StandardNotation);
-
-    QLabel* label = CreateLabel("Эпсилон:", 14.0f);
-    mEpsilonEdit = new QLineEdit();
-    mEpsilonEdit->setValidator(validator);
-    container->addWidget(label);
-    container->addWidget(mEpsilonEdit);
-    container->setSpacing(10);
-
-    mMainLayout->addWidget(container);
-}
-
-bool VariableStepMethodBase::validate() {
-    std::optional<const char*> errorText;
-
-    int n = 0;
-
-    if (mExpressionEdit->text().isEmpty()) {
-        errorText = "Ошибка: введите подинтегральную функцию.";
-    } else if (mLowerBoundEdit->text().isEmpty()) {
-        errorText = "Ошибка: введите нижний предел.";
-    } else if (mUpperBoundEdit->text().isEmpty()) {
-        errorText = "Ошибка: введите верхний предел.";
-    } else if (mEpsilonEdit->text().isEmpty()) {
-        errorText = "Ошибка: введите кол-во шагов.";
     }
 
     const bool hasError = errorText.has_value();

@@ -23,7 +23,6 @@ private:
     QPushButton* mRightRectanglesPageButton = nullptr;
     QPushButton* mTrapezoidPageButton = nullptr;
     QPushButton* mSimpsonPageButton = nullptr;
-    QPushButton* mVariableStepPageButton = nullptr;
 };
 
 #endif // APP_HPP_

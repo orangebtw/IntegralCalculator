@@ -1,18 +1,18 @@
-#ifndef UI_WIDGETS_HBOX_WIDGET_HPP_
-#define UI_WIDGETS_HBOX_WIDGET_HPP_
+#ifndef UI_WIDGETS_VBOX_WIDGET_HPP_
+#define UI_WIDGETS_VBOX_WIDGET_HPP_
 
 #include <QWidget>
-#include <QHBoxLayout>
+#include <QVBoxLayout>
 
-class HBoxWidget : public QWidget {
+class VBoxWidget : public QWidget {
     Q_OBJECT;
 
 public:
-    HBoxWidget(QWidget* parent = nullptr) : QWidget(parent) {
-        mLayout = new QHBoxLayout();
+    VBoxWidget(QWidget* parent = nullptr) : QWidget(parent) {
+        mLayout = new QVBoxLayout();
         mLayout->setContentsMargins(0, 0, 0, 0);
         mLayout->setSpacing(0);
-        mLayout->setAlignment(Qt::AlignLeft);
+        mLayout->setAlignment(Qt::AlignTop);
         setLayout(mLayout);
     }
 
@@ -29,7 +29,7 @@ public:
     }
 
 private:
-    QHBoxLayout* mLayout = nullptr;
+    QVBoxLayout* mLayout = nullptr;
 };
 
 #endif // !UI_WIDGETS_HBOX_WIDGET_HPP_

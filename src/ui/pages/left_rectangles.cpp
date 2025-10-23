@@ -10,7 +10,7 @@
     using namespace QtCharts;
 #endif
 
-std::optional<LeftRectanglesPage::CalculateResult> LeftRectanglesPage::calculate(double a, double b, unsigned n, const std::string& expr) {
+std::optional<LeftRectanglesPage::CalculateResult> LeftRectanglesPage::calculateWithFixedStep(double a, double b, unsigned n, const std::string& expr) {
     mChart->removeAllSeries();
 
     double x = 0.0;
@@ -20,8 +20,7 @@ std::optional<LeftRectanglesPage::CalculateResult> LeftRectanglesPage::calculate
         return std::nullopt;
     }
 
-    double min, max;
-    plot_function(a, b, expression, min, max);
+    plot_function(a, b, expression);
 
     const double h = (b - a) / n;
     for (double k = a; k <= b; k += h) {
@@ -57,13 +56,28 @@ std::optional<LeftRectanglesPage::CalculateResult> LeftRectanglesPage::calculate
         areaSeries->attachAxis(mAxisY);
     }
 
-    setup_axis_lines(a, b, min, max);
-
-    mAxisX->setRange(a, b);
-    mAxisY->setRange(min, max);
-
     double result = integral::rectangles_left(a, b, n, expression);
     return CalculateResult {
         .value = result
+    };
+}
+
+std::optional<LeftRectanglesPage::CalculateResult> LeftRectanglesPage::calculateWithVarStep(double a, double b, double eps, const std::string& expr) {
+    mChart->removeAllSeries();
+
+    double x = 0.0;
+    
+    exprtk::expression<double> expression;
+    if (!utils::compile_expression(expression, expr, x)) {
+        return std::nullopt;
+    }
+
+    plot_function(a, b, expression);
+
+    int n;
+    double result = integral::rectangles_left_variable(a, b, eps, expression, n);
+    return CalculateResult {
+        .value = result,
+        .steps = n
     };
 }

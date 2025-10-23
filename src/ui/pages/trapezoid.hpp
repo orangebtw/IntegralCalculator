@@ -8,16 +8,17 @@
 
 #include "base.hpp"
 
-class TrapezoidPage final : public FixedStepsMethodBase {
+class TrapezoidPage final : public MethodPageBase {
     Q_OBJECT
 
 public:
-    TrapezoidPage(QWidget* parent = nullptr) : FixedStepsMethodBase("Метод трапеций", parent) {
+    TrapezoidPage(QWidget* parent = nullptr) : MethodPageBase("Метод трапеций", parent) {
     }
     ~TrapezoidPage() = default;
 
 private:
-    virtual std::optional<CalculateResult> calculate(double a, double b, unsigned n, const std::string& expr) override;
+    virtual std::optional<CalculateResult> calculateWithFixedStep(double a, double b, unsigned n, const std::string& expr) override;
+    virtual std::optional<CalculateResult> calculateWithVarStep(double a, double b, double eps, const std::string& expr) override;
 };
 
 #endif // TABS_TRAPEZOID_TAB_HPP_

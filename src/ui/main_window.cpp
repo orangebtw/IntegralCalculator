@@ -17,7 +17,6 @@
 #include "pages/trapezoid.hpp"
 #include "pages/left_rectangles.hpp"
 #include "pages/simpson.hpp"
-#include "pages/variable_step.hpp"
 
 MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Калькулятор интегралов");
@@ -33,7 +32,6 @@ namespace MethodTabs {
         RightRectangles,
         Trapezoid,
         Simpson,
-        VariableStep
     };
 }
 
@@ -55,7 +53,6 @@ void MainWindow::setupUi() {
     mRightRectanglesPageButton = createPageButton("Прямоугольники правых частей");
     mTrapezoidPageButton = createPageButton("Трапеция");
     mSimpsonPageButton = createPageButton("Симпсон");
-    mVariableStepPageButton = createPageButton("Переменный шаг");
 
     QLabel* menuContainerTitle = new QLabel("Методы");
     QPalette titlePalette = menuContainerTitle->palette();
@@ -83,7 +80,6 @@ void MainWindow::setupUi() {
     menuLayout->addWidget(mRightRectanglesPageButton);
     menuLayout->addWidget(mTrapezoidPageButton);
     menuLayout->addWidget(mSimpsonPageButton);
-    menuLayout->addWidget(mVariableStepPageButton);
     menuLayout->addStretch();
 
     menuContainer->setLayout(menuLayout);
@@ -93,7 +89,6 @@ void MainWindow::setupUi() {
     mContentWidget->insertWidget(MethodTabs::RightRectangles, new RightRectanglesPage());
     mContentWidget->insertWidget(MethodTabs::Trapezoid, new TrapezoidPage());
     mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonPage());
-    mContentWidget->insertWidget(MethodTabs::VariableStep, new VariableStepPage());
 
     mainContainerLayout->addWidget(menuContainer);
     mainContainerLayout->addWidget(mContentWidget);
@@ -122,10 +117,6 @@ void MainWindow::setupUi() {
 
     QObject::connect(mSimpsonPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::Simpson);
-    });
-
-    QObject::connect(mVariableStepPageButton, &QPushButton::clicked, [this] {
-        mContentWidget->setCurrentIndex(MethodTabs::VariableStep);
     });
 
     setCentralWidget(stackedWidget);
