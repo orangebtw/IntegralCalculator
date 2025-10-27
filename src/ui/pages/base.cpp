@@ -55,8 +55,9 @@ void MethodPageBase::setupUi(const QString& title) {
     mMainLayout->setAlignment(Qt::AlignTop);
     mMainLayout->setSpacing(20);
     mMainLayout->addWidget(titleLabel);
+}
 
-    addBaseInputs();
+void MethodPageBase::addOutputs() {
     mMainLayout->addWidget(mCalculateButton);
     mMainLayout->addWidget(mResultLabel);
     mMainLayout->addWidget(mChartView);
@@ -98,41 +99,51 @@ void MethodPageBase::addBaseInputs() {
     variableStepContainer->setSpacing(10);
     variableStepContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
 
+    mMainLayout->addWidget(expressionContainer);
+    mMainLayout->addWidget(lowerBoundContainer);
+    mMainLayout->addWidget(upperBoundContainer);
+    mMainLayout->addWidget(variableStepContainer);
+}
+
+QWidget* MethodPageBase::createEpsilonInputContainer() {
     VBoxWidget* epsilonInputContainer = new VBoxWidget();
 
-    QDoubleValidator* epsilonValidator = new QDoubleValidator();
-    epsilonValidator->setNotation(QDoubleValidator::StandardNotation);
+    QDoubleValidator* validator = new QDoubleValidator();
+    validator->setNotation(QDoubleValidator::StandardNotation);
 
     QLabel* epsilonLabel = CreateLabel("Эпсилон:", 12.0f);
     mEpsilonEdit = new QLineEdit();
-    mEpsilonEdit->setValidator(epsilonValidator);
+    mEpsilonEdit->setValidator(validator);
     epsilonInputContainer->addWidget(epsilonLabel);
     epsilonInputContainer->addWidget(mEpsilonEdit);
     epsilonInputContainer->setContentMargins(0, 0, 0, 0);
     epsilonInputContainer->setSpacing(5);
 
+    return epsilonInputContainer;
+}
+
+QWidget* MethodPageBase::createStepsInputContainer() {
     VBoxWidget* stepsContainer = new VBoxWidget();
 
-    QIntValidator* stepsValidator = new QIntValidator(1, std::numeric_limits<int>::max());
+    QIntValidator* validator = new QIntValidator(1, std::numeric_limits<int>::max());
 
     QLabel* stepsLabel = CreateLabel("Кол-во шагов:", 12.0f);
     mStepsAmountEdit = new QLineEdit();
-    mStepsAmountEdit->setValidator(epsilonValidator);
+    mStepsAmountEdit->setValidator(validator);
     stepsContainer->addWidget(stepsLabel);
     stepsContainer->addWidget(mStepsAmountEdit);
     stepsContainer->setContentMargins(0, 0, 0, 0);
     stepsContainer->setSpacing(5);
 
+    return stepsContainer;
+}
+
+void MethodPageBase::addStepsInput(QWidget* stepsContainer, QWidget* epsilonContainer) {
     ResizableStackedWidget* stackedWidget = new ResizableStackedWidget();
     stackedWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
     stackedWidget->addWidget(stepsContainer);
-    stackedWidget->addWidget(epsilonInputContainer);
-    stackedWidget->adjustSize();
+    stackedWidget->addWidget(epsilonContainer);
 
-    mMainLayout->addWidget(expressionContainer);
-    mMainLayout->addWidget(lowerBoundContainer);
-    mMainLayout->addWidget(upperBoundContainer);
-    mMainLayout->addWidget(variableStepContainer);
     mMainLayout->addWidget(stackedWidget);
 
     QObject::connect(mVariableStepCheck, &QCheckBox::checkStateChanged, [this, stackedWidget](Qt::CheckState state) {

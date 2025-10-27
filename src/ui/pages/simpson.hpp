@@ -13,6 +13,7 @@ class SimpsonPage final : public MethodPageBase {
 
 public:
     SimpsonPage(QWidget* parent = nullptr) : MethodPageBase("Метод Симпсона", parent) {
+        initDefaultLayout();
     }
     ~SimpsonPage() = default;
 

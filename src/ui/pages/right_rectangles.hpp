@@ -13,6 +13,7 @@ class RightRectanglesPage final : public MethodPageBase {
 
 public:
     RightRectanglesPage(QWidget* parent = nullptr) : MethodPageBase("Метод прямоугольников правых частей", parent) {
+        initDefaultLayout();
     }
 
     ~RightRectanglesPage() = default;

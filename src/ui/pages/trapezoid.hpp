@@ -13,6 +13,7 @@ class TrapezoidPage final : public MethodPageBase {
 
 public:
     TrapezoidPage(QWidget* parent = nullptr) : MethodPageBase("Метод трапеций", parent) {
+        initDefaultLayout();
     }
     ~TrapezoidPage() = default;
 

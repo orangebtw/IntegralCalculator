@@ -70,10 +70,23 @@ protected:
 protected:
     void plot_function(double a, double b, exprtk::expression<double>& expression);
 
+protected:
+    void addBaseInputs();
+    void addStepsInput(QWidget* stepsContainer, QWidget* epsilonContainer);
+    void addOutputs();
+
+    QWidget* createEpsilonInputContainer();
+    QWidget* createStepsInputContainer();
+
+    void initDefaultLayout() {
+        addBaseInputs();
+        addStepsInput(createStepsInputContainer(), createEpsilonInputContainer());
+        addOutputs();
+    }
+
 private:
     void setupUi(const QString& title);
 
-    void addBaseInputs();
     void setCalculateButtonCallback(std::function<void()> callback);
 
     void setError(const QString& errorText);

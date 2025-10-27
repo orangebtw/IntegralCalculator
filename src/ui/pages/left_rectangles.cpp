@@ -75,7 +75,13 @@ std::optional<LeftRectanglesPage::CalculateResult> LeftRectanglesPage::calculate
     plot_function(a, b, expression);
 
     int n;
-    double result = integral::rectangles_left_variable(a, b, eps, expression, n);
+    double result = 1337.0f;
+
+    if (mAlgorithmGroup->checkedId() == 0) {
+        result = integral::rectangles_left_variable(a, b, eps, expression, n);
+    } else {
+        result = integral::rectangles_left_variable2(a, b, eps, expression, n);
+    }
     return CalculateResult {
         .value = result,
         .steps = n
