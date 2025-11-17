@@ -3,8 +3,8 @@
 
 #include "left_rectangles.hpp"
 
-#include "../../integral.hpp"
-#include "../../utils.hpp"
+#include "../../../integral.hpp"
+#include "../../../utils.hpp"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     using namespace QtCharts;

@@ -9,18 +9,18 @@
 #include <QStackedWidget>
 
 #include "base.hpp"
-#include "../widgets/chartview.hpp"
-#include "../widgets/hboxwidget.hpp"
-#include "../widgets/vboxwidget.hpp"
-#include "../widgets/resizablestackedwidget.hpp"
-#include "../utils.hpp"
-#include "../../exprtk.hpp"
+#include "../../widgets/chartview.hpp"
+#include "../../widgets/hboxwidget.hpp"
+#include "../../widgets/vboxwidget.hpp"
+#include "../../widgets/resizablestackedwidget.hpp"
+#include "../../utils.hpp"
+#include "../../../exprtk.hpp"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     using namespace QtCharts;
 #endif
 
-void MethodPageBase::setupUi(const QString& title) {
+void IntegralMethodPageBase::setupUi(const QString& title) {
     mMainLayout = new QVBoxLayout();
     setLayout(mMainLayout);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -28,9 +28,10 @@ void MethodPageBase::setupUi(const QString& title) {
     mCalculateButton = new QPushButton("Вычислить");
 
     mResultLabel = new QLabel();
-    SetFont(mResultLabel, 18.0f);
+    SetFontSize(mResultLabel, 18.0f);
 
     QLabel* titleLabel = CreateLabel(title, 36.0f);
+    titleLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     titleLabel->setAlignment(Qt::AlignHCenter);
 
     mChart = new QChart();
@@ -57,13 +58,13 @@ void MethodPageBase::setupUi(const QString& title) {
     mMainLayout->addWidget(titleLabel);
 }
 
-void MethodPageBase::addOutputs() {
+void IntegralMethodPageBase::addOutputs() {
     mMainLayout->addWidget(mCalculateButton);
     mMainLayout->addWidget(mResultLabel);
     mMainLayout->addWidget(mChartView);
 }
 
-void MethodPageBase::addBaseInputs() {
+void IntegralMethodPageBase::addBaseInputs() {
     QDoubleValidator* validator = new QDoubleValidator();
     validator->setNotation(QDoubleValidator::StandardNotation);
 
@@ -105,7 +106,7 @@ void MethodPageBase::addBaseInputs() {
     mMainLayout->addWidget(variableStepContainer);
 }
 
-QWidget* MethodPageBase::createEpsilonInputContainer() {
+QWidget* IntegralMethodPageBase::createEpsilonInputContainer() {
     VBoxWidget* epsilonInputContainer = new VBoxWidget();
 
     QDoubleValidator* validator = new QDoubleValidator();
@@ -122,7 +123,7 @@ QWidget* MethodPageBase::createEpsilonInputContainer() {
     return epsilonInputContainer;
 }
 
-QWidget* MethodPageBase::createStepsInputContainer() {
+QWidget* IntegralMethodPageBase::createStepsInputContainer() {
     VBoxWidget* stepsContainer = new VBoxWidget();
 
     QIntValidator* validator = new QIntValidator(1, std::numeric_limits<int>::max());
@@ -138,7 +139,7 @@ QWidget* MethodPageBase::createStepsInputContainer() {
     return stepsContainer;
 }
 
-void MethodPageBase::addStepsInput(QWidget* stepsContainer, QWidget* epsilonContainer) {
+void IntegralMethodPageBase::addStepsInput(QWidget* stepsContainer, QWidget* epsilonContainer) {
     ResizableStackedWidget* stackedWidget = new ResizableStackedWidget();
     stackedWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
     stackedWidget->addWidget(stepsContainer);
@@ -152,25 +153,25 @@ void MethodPageBase::addStepsInput(QWidget* stepsContainer, QWidget* epsilonCont
     });
 }
 
-void MethodPageBase::setCalculateButtonCallback(std::function<void()> callback) {
+void IntegralMethodPageBase::setCalculateButtonCallback(std::function<void()> callback) {
     QObject::connect(mCalculateButton, &QPushButton::clicked, callback);
 }
 
-void MethodPageBase::setError(const QString& errorText) {
+void IntegralMethodPageBase::setError(const QString& errorText) {
     QPalette palette = mResultLabel->palette();
     palette.setColor(mResultLabel->foregroundRole(), Qt::red);
     mResultLabel->setPalette(palette);
     mResultLabel->setText(errorText);
 }
 
-void MethodPageBase::setResult(const QString& resultText) {
+void IntegralMethodPageBase::setResult(const QString& resultText) {
     QPalette palette = mResultLabel->palette();
     palette.setColor(mResultLabel->foregroundRole(), Qt::black);
     mResultLabel->setPalette(palette);
     mResultLabel->setText(resultText);
 }
 
-void MethodPageBase::setup_axis_lines(double x_min, double x_max, double y_min, double y_max)  {
+void IntegralMethodPageBase::setup_axis_lines(double x_min, double x_max, double y_min, double y_max)  {
     QPen pen = QPen();
     pen.setColor(QColor(Qt::black));
     pen.setWidth(1);
@@ -196,7 +197,7 @@ void MethodPageBase::setup_axis_lines(double x_min, double x_max, double y_min, 
     axisYSeries->attachAxis(mAxisY);
 }
 
-void MethodPageBase::plot_function(double a, double b, exprtk::expression<double>& expression) {
+void IntegralMethodPageBase::plot_function(double a, double b, exprtk::expression<double>& expression) {
     double& x = expression.get_symbol_table().get_variable("x")->ref();
     double max = std::numeric_limits<qreal>::min();
     double min = 0;
@@ -223,7 +224,7 @@ void MethodPageBase::plot_function(double a, double b, exprtk::expression<double
     mAxisY->setRange(min, max);
 }
 
-bool MethodPageBase::validate() {
+bool IntegralMethodPageBase::validate() {
     std::optional<const char*> errorText;
 
     int n = 0;

@@ -1,5 +1,5 @@
-#ifndef UI_TABS_BASE_TAB_HPP_
-#define UI_TABS_BASE_TAB_HPP_
+#ifndef UI_PAGES_INTEGRAL_BASE_TAB_HPP_
+#define UI_PAGES_INTEGRAL_BASE_TAB_HPP_
 
 #include <QWidget>
 #include <QLineEdit>
@@ -25,7 +25,7 @@ namespace exprtk {
     using QtCharts::QValueAxis;
 #endif
 
-class MethodPageBase : public QWidget {
+class IntegralMethodPageBase : public QWidget {
     Q_OBJECT
 public:
     struct CalculateResult {
@@ -33,7 +33,7 @@ public:
         int steps;
     };
 public:
-    MethodPageBase(const QString& title, QWidget* parent = nullptr) : QWidget(parent) {
+    IntegralMethodPageBase(const QString& title, QWidget* parent = nullptr) : QWidget(parent) {
         setupUi(title);
         setCalculateButtonCallback([this] {
             if (!validate()) return;

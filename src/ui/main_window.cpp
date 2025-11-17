@@ -13,10 +13,13 @@
 
 #include "main_window.hpp"
 
-#include "pages/right_rectangles.hpp"
-#include "pages/trapezoid.hpp"
-#include "pages/left_rectangles.hpp"
-#include "pages/simpson.hpp"
+#include "./pages/integral/right_rectangles.hpp"
+#include "./pages/integral/trapezoid.hpp"
+#include "./pages/integral/left_rectangles.hpp"
+#include "./pages/integral/simpson.hpp"
+
+#include "./pages/diff/euler.hpp"
+#include "./pages/diff/rungekutta.hpp"
 
 MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Калькулятор интегралов");
@@ -32,10 +35,12 @@ namespace MethodTabs {
         RightRectangles,
         Trapezoid,
         Simpson,
+        Euler,
+        RungeKutta
     };
 }
 
-QPushButton* MainWindow::createPageButton(const QString& title) {
+static QPushButton* CreatePageButton(const QString& title) {
     QPushButton* button = new QPushButton();
     button->setText(title);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -49,37 +54,46 @@ void MainWindow::setupUi() {
     mainContainerLayout->setContentsMargins(0, 0, 0, 0);
     mainContainerLayout->setSpacing(0);
 
-    mLeftRectanglesPageButton = createPageButton("Прямоугольники левых частей");
-    mRightRectanglesPageButton = createPageButton("Прямоугольники правых частей");
-    mTrapezoidPageButton = createPageButton("Трапеция");
-    mSimpsonPageButton = createPageButton("Симпсон");
+    mLeftRectanglesPageButton = CreatePageButton("Прямоугольники левых частей");
+    mRightRectanglesPageButton = CreatePageButton("Прямоугольники правых частей");
+    mTrapezoidPageButton = CreatePageButton("Трапеция");
+    mSimpsonPageButton = CreatePageButton("Симпсон");
+    mEulerPageButton = CreatePageButton("Эйлер");
+    mRungeKuttaPageButton = CreatePageButton("Рунге-Кутта");
 
-    QLabel* menuContainerTitle = new QLabel("Методы");
-    QPalette titlePalette = menuContainerTitle->palette();
-    titlePalette.setColor(menuContainerTitle->foregroundRole(), Qt::white);
-    menuContainerTitle->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    menuContainerTitle->setPalette(titlePalette);
-    menuContainerTitle->setStyleSheet("QLabel{ font-size: 24px; }");
-    menuContainerTitle->setAlignment(Qt::AlignCenter);
+    QLabel* integralSectionTitle = new QLabel("Интеграл");
+    SetForegroundColor(integralSectionTitle, Qt::white);
+
+    integralSectionTitle->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    integralSectionTitle->setStyleSheet("QLabel{ font-size: 24px; }");
+    integralSectionTitle->setAlignment(Qt::AlignCenter);
+
+    QLabel* diffSectionTitle = new QLabel("Дифференциал");
+    SetForegroundColor(diffSectionTitle, Qt::white);
+
+    diffSectionTitle->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    diffSectionTitle->setStyleSheet("QLabel{ font-size: 24px; }");
+    diffSectionTitle->setAlignment(Qt::AlignCenter);
 
     QWidget* menuContainer = new QWidget();
-    QPalette menuContainerPalette = menuContainer->palette();
-    menuContainerPalette.setColor(QPalette::Window, QColor("#212121"));
+    SetColor(menuContainer, QPalette::Window, QColor("#212121"));
 
     menuContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
     menuContainer->setAutoFillBackground(true);
-    menuContainer->setPalette(menuContainerPalette);
     menuContainer->setMaximumWidth(250);
 
     QVBoxLayout* menuLayout = new QVBoxLayout();
     menuLayout->setContentsMargins(10, 0, 10, 0);
     menuLayout->setSpacing(20);
     menuLayout->addStretch();
-    menuLayout->addWidget(menuContainerTitle);
+    menuLayout->addWidget(integralSectionTitle);
     menuLayout->addWidget(mLeftRectanglesPageButton);
     menuLayout->addWidget(mRightRectanglesPageButton);
     menuLayout->addWidget(mTrapezoidPageButton);
     menuLayout->addWidget(mSimpsonPageButton);
+    menuLayout->addWidget(diffSectionTitle);
+    menuLayout->addWidget(mEulerPageButton);
+    menuLayout->addWidget(mRungeKuttaPageButton);
     menuLayout->addStretch();
 
     menuContainer->setLayout(menuLayout);
@@ -89,6 +103,8 @@ void MainWindow::setupUi() {
     mContentWidget->insertWidget(MethodTabs::RightRectangles, new RightRectanglesPage());
     mContentWidget->insertWidget(MethodTabs::Trapezoid, new TrapezoidPage());
     mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonPage());
+    mContentWidget->insertWidget(MethodTabs::Euler, new EulerPage());
+    mContentWidget->insertWidget(MethodTabs::RungeKutta, new RungeKuttaPage());
 
     mainContainerLayout->addWidget(menuContainer);
     mainContainerLayout->addWidget(mContentWidget);
@@ -117,6 +133,14 @@ void MainWindow::setupUi() {
 
     QObject::connect(mSimpsonPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::Simpson);
+    });
+
+    QObject::connect(mEulerPageButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::Euler);
+    });
+
+    QObject::connect(mRungeKuttaPageButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::RungeKutta);
     });
 
     setCentralWidget(stackedWidget);

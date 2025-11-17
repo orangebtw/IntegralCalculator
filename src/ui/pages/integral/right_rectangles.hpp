@@ -1,5 +1,5 @@
-#ifndef TABS_RIGHT_RECTANGLES_TAB_HPP_
-#define TABS_RIGHT_RECTANGLES_TAB_HPP_
+#ifndef UI_PAGES_INTEGRAL_RIGHT_RECTANGLES_TAB_HPP_
+#define UI_PAGES_INTEGRAL_RIGHT_RECTANGLES_TAB_HPP_
 
 #include <QWidget>
 #include <QLineEdit>
@@ -8,11 +8,11 @@
 
 #include "base.hpp"
 
-class RightRectanglesPage final : public MethodPageBase {
+class RightRectanglesPage final : public IntegralMethodPageBase {
     Q_OBJECT
 
 public:
-    RightRectanglesPage(QWidget* parent = nullptr) : MethodPageBase("Метод прямоугольников правых частей", parent) {
+    RightRectanglesPage(QWidget* parent = nullptr) : IntegralMethodPageBase("Метод прямоугольников правых частей", parent) {
         initDefaultLayout();
     }
 
@@ -23,5 +23,5 @@ private:
     virtual std::optional<CalculateResult> calculateWithVarStep(double a, double b, double eps, const std::string& expr) override;
 };
 
-#endif // TABS_RIGHT_RECTANGLES_TAB_HPP_
+#endif // UI_PAGES_INTEGRAL_RIGHT_RECTANGLES_TAB_HPP_
 

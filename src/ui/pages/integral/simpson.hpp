@@ -1,5 +1,5 @@
-#ifndef TABS_SIMPSON_TAB_HPP_
-#define TABS_SIMPSON_TAB_HPP_
+#ifndef UI_PAGES_INTEGRAL_SIMPSON_TAB_HPP_
+#define UI_PAGES_INTEGRAL_SIMPSON_TAB_HPP_
 
 #include <QWidget>
 #include <QLineEdit>
@@ -8,11 +8,11 @@
 
 #include "base.hpp"
 
-class SimpsonPage final : public MethodPageBase {
+class SimpsonPage final : public IntegralMethodPageBase {
     Q_OBJECT
 
 public:
-    SimpsonPage(QWidget* parent = nullptr) : MethodPageBase("Метод Симпсона", parent) {
+    SimpsonPage(QWidget* parent = nullptr) : IntegralMethodPageBase("Метод Симпсона", parent) {
         initDefaultLayout();
     }
     ~SimpsonPage() = default;
@@ -22,4 +22,4 @@ private:
     virtual std::optional<CalculateResult> calculateWithVarStep(double a, double b, double eps, const std::string& expr) override;
 };
 
-#endif // TABS_TRAPEZOID_TAB_HPP_
+#endif // UI_PAGES_INTEGRAL_TRAPEZOID_TAB_HPP_

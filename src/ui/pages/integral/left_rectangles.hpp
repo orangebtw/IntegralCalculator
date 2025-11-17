@@ -1,5 +1,5 @@
-#ifndef TABS_LEFT_RECTANGLES_TAB_HPP_
-#define TABS_LEFT_RECTANGLES_TAB_HPP_
+#ifndef UI_PAGES_INTEGRAL_LEFT_RECTANGLES_TAB_HPP_
+#define UI_PAGES_INTEGRAL_LEFT_RECTANGLES_TAB_HPP_
 
 #include <QWidget>
 #include <QLineEdit>
@@ -11,15 +11,14 @@
 
 #include "base.hpp"
 
-#include "../widgets/hboxwidget.hpp"
-#include "../widgets/vboxwidget.hpp"
-#include "src/ui/utils.hpp"
+#include "../../widgets/vboxwidget.hpp"
+#include "../../utils.hpp"
 
-class LeftRectanglesPage final : public MethodPageBase {
+class LeftRectanglesPage final : public IntegralMethodPageBase {
     Q_OBJECT
 
 public:
-    LeftRectanglesPage(QWidget* parent = nullptr) : MethodPageBase("Метод прямоугольников левых частей", parent) {
+    LeftRectanglesPage(QWidget* parent = nullptr) : IntegralMethodPageBase("Метод прямоугольников левых частей", parent) {
         addBaseInputs();
 
         VBoxWidget* stepsContainer = new VBoxWidget();
@@ -43,8 +42,8 @@ public:
         
         algorithm1Button->setChecked(true);
 
-        SetFont(algorithm1Button, 12.0f);
-        SetFont(algorithm2Button, 12.0f);
+        SetFontSize(algorithm1Button, 12.0f);
+        SetFontSize(algorithm2Button, 12.0f);
 
         mAlgorithmGroup->addButton(algorithm1Button, 0);
         mAlgorithmGroup->addButton(algorithm2Button, 1);
@@ -76,4 +75,4 @@ private:
     QButtonGroup* mAlgorithmGroup = nullptr;
 };
 
-#endif // TABS_LEFT_RECTANGLES_TAB_HPP_
+#endif // UI_PAGES_INTEGRAL_LEFT_RECTANGLES_TAB_HPP_

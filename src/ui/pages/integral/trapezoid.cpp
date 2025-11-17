@@ -1,16 +1,16 @@
 #include <QLineSeries>
 #include <QAreaSeries>
 
-#include "right_rectangles.hpp"
+#include "trapezoid.hpp"
 
-#include "../../integral.hpp"
-#include "../../utils.hpp"
+#include "../../../integral.hpp"
+#include "../../../utils.hpp"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     using namespace QtCharts;
 #endif
 
-std::optional<RightRectanglesPage::CalculateResult> RightRectanglesPage::calculateWithFixedStep(double a, double b, unsigned n, const std::string& expr)  {
+std::optional<TrapezoidPage::CalculateResult> TrapezoidPage::calculateWithFixedStep(double a, double b, unsigned n, const std::string& expr)  {
     mChart->removeAllSeries();
 
     double x = 0.0;
@@ -23,10 +23,10 @@ std::optional<RightRectanglesPage::CalculateResult> RightRectanglesPage::calcula
     plot_function(a, b, expression);
 
     const double h = (b - a) / n;
-    for (double k = b; k >= a + h; k -= h) {
+    for (double k = a; k <= b; k += h) {
         x = k;
         QPointF p1(x, expression.value());
-        x = k - h;
+        x = k + h;
         QPointF p2(x, expression.value());
 
         QLineSeries* lowerSeries = new QLineSeries();
@@ -37,7 +37,7 @@ std::optional<RightRectanglesPage::CalculateResult> RightRectanglesPage::calcula
         QLineSeries* upperSeries = new QLineSeries();
         upperSeries->setUseOpenGL(true);
         upperSeries->append(p1);
-        upperSeries->append(p2.x(), p1.y());
+        upperSeries->append(p2);
 
         if (p2.y() < 0) {
             std::swap(lowerSeries, upperSeries);
@@ -56,13 +56,14 @@ std::optional<RightRectanglesPage::CalculateResult> RightRectanglesPage::calcula
         areaSeries->attachAxis(mAxisY);
     }
 
-    double result = integral::rectangles_right(a, b, n, expression);
+    double result = integral::trapezoid(a, b, n, expression);
+
     return CalculateResult {
         .value = result
     };
 }
 
-std::optional<RightRectanglesPage::CalculateResult> RightRectanglesPage::calculateWithVarStep(double a, double b, double eps, const std::string& expr)  {
+std::optional<TrapezoidPage::CalculateResult> TrapezoidPage::calculateWithVarStep(double a, double b, double eps, const std::string& expr)  {
     mChart->removeAllSeries();
 
     double x = 0.0;
@@ -75,7 +76,8 @@ std::optional<RightRectanglesPage::CalculateResult> RightRectanglesPage::calcula
     plot_function(a, b, expression);
 
     int n;
-    double result = integral::rectangles_right_variable(a, b, eps, expression, n);
+    double result = integral::trapezoid_variable(a, b, eps, expression, n);
+
     return CalculateResult {
         .value = result,
         .steps = n
