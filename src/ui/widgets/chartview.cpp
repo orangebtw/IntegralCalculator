@@ -44,9 +44,9 @@ void ChartView::wheelEvent(QWheelEvent* event) {
         }
 
         chart()->zoomIn(plotArea);
+    } else {
+        QChartView::wheelEvent(event);
     }
-
-    QChartView::wheelEvent(event);
 }
 
 void ChartView::keyPressEvent(QKeyEvent* event) {

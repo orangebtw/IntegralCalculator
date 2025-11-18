@@ -7,6 +7,8 @@
 #include <QValueAxis>
 #include <QLineEdit>
 #include <QStackedWidget>
+#include <QTableWidget>
+#include <QHeaderView>
 #include <qlineedit.h>
 #include <qsizepolicy.h>
 
@@ -14,7 +16,6 @@
 #include "../../widgets/chartview.hpp"
 #include "../../widgets/hboxwidget.hpp"
 #include "../../widgets/vboxwidget.hpp"
-#include "../../widgets/resizablestackedwidget.hpp"
 #include "../../utils.hpp"
 #include "../../../exprtk.hpp"
 
@@ -22,9 +23,87 @@
     using namespace QtCharts;
 #endif
 
+DiffMethodPageBase::DiffMethodPageBase(const QString& title, QWidget* parent) : QScrollArea(parent) {
+    setupUi(title);
+    setCalculateButtonCallback([this] {
+        if (!validate()) return;
+        
+        QLocale locale = QLocale::system();
+
+        std::string expr = mExpressionEdit->text().toStdString();
+        double a = locale.toDouble(mLowerBoundEdit->text());
+        double b = locale.toDouble(mUpperBoundEdit->text());
+        char dependentVar = mDependentVarEdit->text().at(0).toLatin1();
+        char independentVar = mIndependentVarEdit->text().at(0).toLatin1();
+
+        double startValue = locale.toDouble(mStartValueEdit->text());
+        
+        int steps = mStepsAmountEdit->text().toInt();
+        auto result = calculateWithFixedStep(a, startValue, b, steps, dependentVar, independentVar, expr);
+
+        if (result.has_value()) {
+            auto& start = result->data.front();
+            auto& end = result->data.back();
+
+            double newMinX = std::min(start.first, mMinX);
+            double newMaxX = std::max(end.first, mMaxX);
+
+            double newMinY = std::min(start.second, mMinY);
+            double newMaxY = std::max(end.second, mMaxY);
+
+            if (newMinX != mMinX || newMaxX != mMaxX) {
+                setup_x_axis_line(newMinX, newMaxX);
+            }
+
+            if (newMinY != mMinY || newMaxY != mMaxY) {
+                setup_y_axis_line(newMinY, newMaxY);
+            }
+
+            mMinX = newMinX;
+            mMinY = newMinY;
+            mMaxX = newMaxX;
+            mMaxY = newMaxY;
+
+            mModel.reset(new QStandardItemModel(result->data.size(), 2));
+            mModel->setHorizontalHeaderLabels({"x", "y"});
+
+            QLineSeries* series = new QLineSeries();
+            series->setUseOpenGL(true);
+            series->setName(QString("%1 шагов").arg(steps));
+
+            for (int row = 0; row < result->data.size(); ++row) {
+                double x = result->data[row].first;
+                double y = result->data[row].second;
+
+                mModel->setItem(row, 0, new QStandardItem(QString::number(x)));
+                mModel->setItem(row, 1, new QStandardItem(QString::number(y)));
+
+                series->append(QPointF(x, y));
+            }
+
+            mChart->addSeries(series);
+
+            series->attachAxis(mAxisX);
+            series->attachAxis(mAxisY);
+
+            mTable->setModel(mModel.get());
+            mTable->horizontalHeader()->setStretchLastSection(true);
+            mTable->horizontalHeader()->setDefaultAlignment(Qt::AlignmentFlag::AlignLeft);
+
+        } else {
+            setError(QString("Ошибка: %1.").arg(result.error()));
+        }
+    });
+}
+
 void DiffMethodPageBase::setupUi(const QString& title) {
     mMainLayout = new QVBoxLayout();
-    setLayout(mMainLayout);
+    QWidget* contents = new QWidget(this);
+    contents->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    contents->setLayout(mMainLayout);
+    setWidget(contents);
+    setWidgetResizable(true);
+
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     mCalculateButton = new QPushButton("Вычислить");
@@ -37,7 +116,6 @@ void DiffMethodPageBase::setupUi(const QString& title) {
     titleLabel->setAlignment(Qt::AlignHCenter);
 
     mChart = new QChart();
-    mChart->legend()->hide();
     mChart->setContentsMargins(0, 0, 0, 0);
 
     mAxisX = new QValueAxis();
@@ -54,6 +132,10 @@ void DiffMethodPageBase::setupUi(const QString& title) {
     mChartView->setRenderHint(QPainter::Antialiasing);
     mChartView->setRenderHint(QPainter::SmoothPixmapTransform);
     mChartView->setContentsMargins(0, 0, 0, 0);
+    mChartView->setMinimumHeight(500);
+
+    mTable = new QTableView(contents);
+    mTable->setMinimumHeight(400);
 
     mMainLayout->setAlignment(Qt::AlignTop);
     mMainLayout->setSpacing(20);
@@ -61,44 +143,42 @@ void DiffMethodPageBase::setupUi(const QString& title) {
 }
 
 void DiffMethodPageBase::addOutputs() {
+    QPushButton* clearButton = new QPushButton("Очистить");
+    
+    QObject::connect(clearButton, &QPushButton::clicked, [this]() {
+        mChart->removeAllSeries();
+        mMinX = 0.0;
+        mMinY = 0.0;
+        mMaxX = 0.0;
+        mMaxY = 0.0;
+    });
+
     mMainLayout->addWidget(mCalculateButton);
     mMainLayout->addWidget(mResultLabel);
     mMainLayout->addWidget(mChartView);
+    mMainLayout->addWidget(clearButton);
+    mMainLayout->addWidget(mTable);
 }
 
 void DiffMethodPageBase::addBaseInputs() {
-    QDoubleValidator* validator = new QDoubleValidator();
-    validator->setNotation(QDoubleValidator::StandardNotation);
+    QDoubleValidator* doubleValidator = new QDoubleValidator();
+    doubleValidator->setNotation(QDoubleValidator::StandardNotation);
 
-    VBoxWidget* lowerBoundContainer = new VBoxWidget();
-    mLowerBoundEdit = new QLineEdit();
-    mLowerBoundEdit->setValidator(validator);
-    lowerBoundContainer->addWidget(CreateLabel("Нижний предел:", 12.0f));
+    HBoxWidget* lowerBoundContainer = new HBoxWidget();
+    mLowerBoundEdit = new QLineEdit("0");
+    mLowerBoundEdit->setValidator(doubleValidator);
+    lowerBoundContainer->addWidget(CreateLabel("Начало:", 12.0f));
     lowerBoundContainer->addWidget(mLowerBoundEdit);
     lowerBoundContainer->setSpacing(5);
 
-    VBoxWidget* upperBoundContainer = new VBoxWidget();
-    mUpperBoundEdit = new QLineEdit();
-    mUpperBoundEdit->setValidator(validator);
-    upperBoundContainer->addWidget(CreateLabel("Верхний предел:", 12.0f));
+    HBoxWidget* upperBoundContainer = new HBoxWidget();
+    mUpperBoundEdit = new QLineEdit("1");
+    mUpperBoundEdit->setValidator(doubleValidator);
+    upperBoundContainer->addWidget(CreateLabel("Конец:", 12.0f));
     upperBoundContainer->addWidget(mUpperBoundEdit);
     upperBoundContainer->setSpacing(5);
 
-    VBoxWidget* expressionContainer = new VBoxWidget();
-    QLabel* expressionLabel = CreateLabel("Подинтегральная функция:", 12.0f);
     mExpressionEdit = new QLineEdit();
-    expressionContainer->addWidget(expressionLabel);
-    expressionContainer->addWidget(mExpressionEdit);
-    expressionContainer->setSpacing(5);
-
-    HBoxWidget* variableStepContainer = new HBoxWidget();
-    QLabel* variableStepCheckLabel = CreateLabel("Переменный шаг:", 12.0f);
-    mVariableStepCheck = new QCheckBox();
-    mVariableStepCheck->setTristate(false);
-    variableStepContainer->addWidget(variableStepCheckLabel);
-    variableStepContainer->addWidget(mVariableStepCheck);
-    variableStepContainer->setSpacing(10);
-    variableStepContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
 
     mDependentVarEdit = new QLineEdit("y");
     mDependentVarEdit->setMaxLength(1);
@@ -141,39 +221,30 @@ void DiffMethodPageBase::addBaseInputs() {
     equationContainer->addWidget(CreateLabel("=", 18.0f));
     equationContainer->addWidget(mExpressionEdit);
 
-    mStartXEdit = new QLineEdit("0");
-    mStartXEdit->setValidator(validator);
+    mStartValueEdit = new QLineEdit("0");
+    mStartValueEdit->setValidator(doubleValidator);
 
-    mStartYEdit = new QLineEdit("0");
-    mStartYEdit->setValidator(validator);
+    mStepEdit = new QLineEdit();
+    mStepEdit->setValidator(doubleValidator);
 
-    mStepEdit = new QLineEdit("100");
-    mStepEdit->setValidator(validator);
+    QLabel* startValueLabel = CreateLabel("y(0) =", 12.0f);
 
-    QLabel* startDependentLabel = CreateLabel("Начальное x:", 12.0f);
-    QLabel* startIndependentLabel = CreateLabel("Начальное y:", 12.0f);
-
-    QObject::connect(mDependentVarEdit, &QLineEdit::textEdited, [startDependentLabel](const QString& text) {
+    QObject::connect(mDependentVarEdit, &QLineEdit::textEdited, [this, startValueLabel](const QString& text) {
         if (!text.isEmpty()) {
-            startDependentLabel->setText(QString("Начальное %1:").arg(text));
+            startValueLabel->setText(QString("%1(%2) =").arg(text).arg(mStartValueEdit->text()));
         }
     });
 
-    QObject::connect(mIndependentVarEdit, &QLineEdit::textEdited, [startIndependentLabel](const QString& text) {
+    QObject::connect(mLowerBoundEdit, &QLineEdit::textEdited, [this, startValueLabel](const QString& text) {
         if (!text.isEmpty()) {
-            startIndependentLabel->setText(QString("Начальное %1:").arg(text));
+            startValueLabel->setText(QString("%1(%2) =").arg(mDependentVarEdit->text()).arg(text));
         }
     });
-
-    HBoxWidget* startXContainer = new HBoxWidget();
-    startXContainer->setSpacing(5);
-    startXContainer->addWidget(startDependentLabel);
-    startXContainer->addWidget(mStartXEdit);
 
     HBoxWidget* startYContainer = new HBoxWidget();
     startYContainer->setSpacing(5);
-    startYContainer->addWidget(startIndependentLabel);
-    startYContainer->addWidget(mStartYEdit);
+    startYContainer->addWidget(startValueLabel);
+    startYContainer->addWidget(mStartValueEdit);
 
     HBoxWidget* stepContainer = new HBoxWidget();
     stepContainer->setSpacing(5);
@@ -181,26 +252,11 @@ void DiffMethodPageBase::addBaseInputs() {
     stepContainer->addWidget(mStepEdit);
 
     mMainLayout->addWidget(equationContainer);
-    mMainLayout->addWidget(startXContainer);
+    mMainLayout->addWidget(lowerBoundContainer);
+    mMainLayout->addWidget(upperBoundContainer);
     mMainLayout->addWidget(startYContainer);
-    mMainLayout->addWidget(stepContainer);
-    // mMainLayout->addWidget(lowerBoundContainer);
-    // mMainLayout->addWidget(upperBoundContainer);
-    mMainLayout->addWidget(variableStepContainer);
-}
-
-void DiffMethodPageBase::addStepsInput(QWidget* stepsContainer, QWidget* epsilonContainer) {
-    ResizableStackedWidget* stackedWidget = new ResizableStackedWidget();
-    stackedWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
-    stackedWidget->addWidget(stepsContainer);
-    stackedWidget->addWidget(epsilonContainer);
-
-    mMainLayout->addWidget(stackedWidget);
-
-    QObject::connect(mVariableStepCheck, &QCheckBox::checkStateChanged, [this, stackedWidget](Qt::CheckState state) {
-        const bool checked = (state == Qt::Checked);
-        stackedWidget->setCurrentIndex(checked);
-    });
+    mMainLayout->addWidget(createStepsInputContainer());
+    // mMainLayout->addWidget(stepContainer);
 }
 
 void DiffMethodPageBase::setCalculateButtonCallback(std::function<void()> callback) {
@@ -221,30 +277,47 @@ void DiffMethodPageBase::setResult(const QString& resultText) {
     mResultLabel->setText(resultText);
 }
 
-void DiffMethodPageBase::setup_axis_lines(double x_min, double x_max, double y_min, double y_max)  {
+void DiffMethodPageBase::setup_x_axis_line(double x_min, double x_max) {
     QPen pen = QPen();
     pen.setColor(QColor(Qt::black));
     pen.setWidth(1);
 
-    QLineSeries* axisXSeries = new QLineSeries();
-    axisXSeries->append(x_min, 0);
-    axisXSeries->append(x_max, 0);
-    axisXSeries->setPen(pen);
-    axisXSeries->setUseOpenGL(true);
+    if (mChart->series().contains(mAxisXSeries)) {
+        mChart->removeSeries(mAxisXSeries);
+    }
 
-    QLineSeries* axisYSeries = new QLineSeries();
-    axisYSeries->append(0, y_min);
-    axisYSeries->append(0, y_max);
-    axisYSeries->setPen(pen);
-    axisYSeries->setUseOpenGL(true);
+    mAxisXSeries = new QLineSeries();
+    mAxisXSeries->append(x_min, 0);
+    mAxisXSeries->append(x_max, 0);
+    mAxisXSeries->setPen(pen);
+    mAxisXSeries->setUseOpenGL(true);
 
-    mChart->addSeries(axisXSeries);
-    mChart->addSeries(axisYSeries);
+    mChart->addSeries(mAxisXSeries);
 
-    axisXSeries->attachAxis(mAxisX);
-    axisXSeries->attachAxis(mAxisY);
-    axisYSeries->attachAxis(mAxisX);
-    axisYSeries->attachAxis(mAxisY);
+    mAxisXSeries->attachAxis(mAxisX);
+    mAxisXSeries->attachAxis(mAxisY);
+}
+
+
+void DiffMethodPageBase::setup_y_axis_line(double y_min, double y_max) {
+    QPen pen = QPen();
+    pen.setColor(QColor(Qt::black));
+    pen.setWidth(1);
+    
+    if (mChart->series().contains(mAxisYSeries)) {
+        mChart->removeSeries(mAxisYSeries);
+    }
+
+    mAxisYSeries = new QLineSeries();
+    mAxisYSeries->append(0, y_min);
+    mAxisYSeries->append(0, y_max);
+    mAxisYSeries->setPen(pen);
+    mAxisYSeries->setUseOpenGL(true);
+
+    mChart->addSeries(mAxisYSeries);
+
+    mAxisYSeries->attachAxis(mAxisX);
+    mAxisYSeries->attachAxis(mAxisY);
 }
 
 void DiffMethodPageBase::plot_function(double a, double b, exprtk::expression<double>& expression) {
@@ -268,7 +341,8 @@ void DiffMethodPageBase::plot_function(double a, double b, exprtk::expression<do
     lineSeries->attachAxis(mAxisX);
     lineSeries->attachAxis(mAxisY);
 
-    setup_axis_lines(a, b, min, max);
+    setup_x_axis_line(a, b);
+    setup_y_axis_line(min, max);
 
     mAxisX->setRange(a, b);
     mAxisY->setRange(min, max);
@@ -285,29 +359,19 @@ bool DiffMethodPageBase::validate() {
         errorText = "Ошибка: введите независимую переменную.";
     } else if (mExpressionEdit->text().isEmpty()) {
         errorText = "Ошибка: введите функцию.";
-    } else if (mStepEdit->text().isEmpty()) {
+    } /* else if (mStepEdit->text().isEmpty()) {
         errorText = "Ошибка: введите размер шага.";
-    }
-    /* else if (mLowerBoundEdit->text().isEmpty()) {
-        errorText = "Ошибка: введите нижний предел.";
+    } */ else if (mLowerBoundEdit->text().isEmpty()) {
+        errorText = "Ошибка: введите начало.";
     } else if (mUpperBoundEdit->text().isEmpty()) {
-        errorText = "Ошибка: введите верхний предел.";
-    }  */
-    else {
-        const bool isVariableStep = (mVariableStepCheck->checkState() == Qt::Checked);
-
-        if (isVariableStep) {
-            if (mEpsilonEdit->text().isEmpty()) {
-                errorText = "Ошибка: введите эпсилон.";
-            }
+        errorText = "Ошибка: введите конец.";
+    } else {
+        if (mStepsAmountEdit->text().isEmpty()) {
+            errorText = "Ошибка: введите кол-во шагов.";
         } else {
-            if (mStepsAmountEdit->text().isEmpty()) {
-                errorText = "Ошибка: введите кол-во шагов.";
-            } else {
-                n = mStepsAmountEdit->text().toInt();
-                if (n <= 0) {
-                    errorText = "Ошибка: кол-во шагов должно быть больше нуля.";
-                }
+            n = mStepsAmountEdit->text().toInt();
+            if (n <= 0) {
+                errorText = "Ошибка: кол-во шагов должно быть больше нуля.";
             }
         }
     }

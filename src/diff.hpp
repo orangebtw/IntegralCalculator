@@ -5,23 +5,33 @@
 
 namespace diff {
 
-inline double euler(double x0, double y0, double h, int n, double& x, double& y, exprtk::expression<double>& expression) {
+inline std::vector<std::pair<double, double>> euler(double x0, double y0, double h, int n, double& x, double& y, exprtk::expression<double>& expression) {
     x = x0;
     y = y0;
 
+    std::vector<std::pair<double, double>> data;
+    data.reserve(n);
+
     while (n > 0) {
+        data.push_back({x ,y});
+
         y += expression.value() * h;
         x += h;
 
         --n;
     }
 
-    return y;
+    data.push_back({x, y});
+
+    return data;
 }
 
-inline double rungekutta(double x0, double y0, double h, int n, double& x, double& y, exprtk::expression<double>& expression) {
+inline std::vector<std::pair<double, double>> rungekutta(double x0, double y0, double h, int n, double& x, double& y, exprtk::expression<double>& expression) {
     x = x0;
     y = y0;
+
+    std::vector<std::pair<double, double>> data;
+    data.reserve(n);
 
     double sx;
     double sy;
@@ -53,7 +63,9 @@ inline double rungekutta(double x0, double y0, double h, int n, double& x, doubl
         --n;
     }
 
-    return y;
+    data.push_back({x, y});
+
+    return data;
 }
 
 }

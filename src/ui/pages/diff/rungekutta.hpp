@@ -17,15 +17,14 @@ class RungeKuttaPage final : public DiffMethodPageBase {
 public:
     RungeKuttaPage(QWidget* parent = nullptr) : DiffMethodPageBase("Метод Рунге-Кутта", parent) {
         addBaseInputs();
-        addStepsInput(createStepsInputContainer(), createEpsilonInputContainer());
         addOutputs();
     }
     
     ~RungeKuttaPage() = default;
 
 private:
-    virtual std::optional<CalculateResult> calculateWithFixedStep(double x0, double y0, int steps, char dependentVar, char independentVar, const std::string& expr) override;
-    virtual std::optional<CalculateResult> calculateWithVarStep(const std::string& expr) override;
+    virtual CalculateResult calculateWithFixedStep(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) override;
+    virtual CalculateResult calculateWithVarStep(const std::string& expr) override;
 
 private:
     QButtonGroup* mAlgorithmGroup = nullptr;
