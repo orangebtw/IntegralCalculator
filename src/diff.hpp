@@ -109,7 +109,7 @@ inline std::vector<Result> rungekutta2(double x0, double y0, double dy0, double 
     double sx;
     double su;
     double sv;
-    
+
     while (n > 0) {
         sx = x;
         su = u;
@@ -136,10 +136,10 @@ inline std::vector<Result> rungekutta2(double x0, double y0, double dy0, double 
         double k4_u = expr1.value();
         double k4_v = expr2.value();
         
-        u = u + h * (k1_u + 2.0*k2_u + 2.0*k3_u + k4_u) / 6.0;
-        v = v + h * (k1_v + 2.0*k2_v + 2.0*k3_v + k4_v) / 6.0;
-        x = x + h;
-        
+        u = su + h * (k1_u + 2.0*k2_u + 2.0*k3_u + k4_u) / 6.0;
+        v = sv + h * (k1_v + 2.0*k2_v + 2.0*k3_v + k4_v) / 6.0;
+        x = sx + h;
+
         data.push_back({x, u, v});
         --n;
     }
