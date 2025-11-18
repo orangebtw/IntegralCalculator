@@ -19,7 +19,6 @@
 
 #include <expected>
 
-#include "../../widgets/resizablestackedwidget.hpp"
 #include "../../../diff.hpp"
 
 namespace exprtk {
@@ -43,9 +42,6 @@ public:
 protected:
     virtual CalculateResult calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) = 0;
     virtual CalculateResult calculate2(double x0, double y0, double dy0, double end, int steps, char dependentVar, char dependentVar2, char independentVar, const std::string& expr1, const std::string& expr2) = 0;
-
-protected:
-    void plot_function(double a, double b, exprtk::expression<double>& expression);
 
 protected:
     QWidget* createFirstOrderInputs();

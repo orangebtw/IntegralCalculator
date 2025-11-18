@@ -3,6 +3,7 @@
 
 #include <QLabel>
 #include <QString>
+#include <qsizepolicy.h>
 
 template <typename T>
 inline void SetFontSize(T* widget, float fontSize) {
@@ -25,9 +26,10 @@ inline void SetColor(T* widget, QPalette::ColorRole role, QColor color) {
     widget->setPalette(palette);
 }
 
-inline QLabel* CreateLabel(const QString& text, float fontSize) {
+inline QLabel* CreateLabel(const QString& text, float fontSize, QSizePolicy sizePolicy = QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed)) {
     QLabel* label = new QLabel(text);
-    label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    label->setSizePolicy(sizePolicy);
+    label->setAlignment(Qt::AlignCenter);
     SetFontSize(label, fontSize);
     return label;
 }

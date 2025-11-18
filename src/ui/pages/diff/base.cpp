@@ -19,7 +19,6 @@
 #include "../../widgets/hboxwidget.hpp"
 #include "../../widgets/vboxwidget.hpp"
 #include "../../utils.hpp"
-#include "../../../exprtk.hpp"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     using namespace QtCharts;
@@ -212,8 +211,10 @@ void DiffMethodPageBase::addOutputs() {
 
     mMainLayout->addWidget(mCalculateButton);
     mMainLayout->addWidget(mResultLabel);
+    mMainLayout->addWidget(CreateLabel("График", 22.0f, QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred)));
     mMainLayout->addWidget(mChartView);
     mMainLayout->addWidget(clearButton);
+    mMainLayout->addWidget(CreateLabel("Таблица", 22.0f, QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred)));
     mMainLayout->addWidget(mTable);
 }
 
@@ -563,34 +564,6 @@ void DiffMethodPageBase::setup_y_axis_line(double y_min, double y_max) {
 
     mAxisYSeries->attachAxis(mAxisX);
     mAxisYSeries->attachAxis(mAxisY);
-}
-
-void DiffMethodPageBase::plot_function(double a, double b, exprtk::expression<double>& expression) {
-    double& x = expression.get_symbol_table().get_variable("x")->ref();
-    double max = std::numeric_limits<qreal>::min();
-    double min = 0;
-    
-    QLineSeries* lineSeries = new QLineSeries();
-    lineSeries->setUseOpenGL(true);
-
-    for (x = a; x <= b; x += 0.001) {
-        const qreal value = expression.value();
-        if (value > max)
-            max = value;
-        if (value < min)
-            min = value;
-        lineSeries->append(x, value);
-    }
-
-    mChart->addSeries(lineSeries);
-    lineSeries->attachAxis(mAxisX);
-    lineSeries->attachAxis(mAxisY);
-
-    setup_x_axis_line(a, b);
-    setup_y_axis_line(min, max);
-
-    mAxisX->setRange(a, b);
-    mAxisY->setRange(min, max);
 }
 
 bool DiffMethodPageBase::validate() {

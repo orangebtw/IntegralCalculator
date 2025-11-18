@@ -21,7 +21,7 @@ void ChartView::mousePressEvent(QMouseEvent *event) {
 }
 
 void ChartView::wheelEvent(QWheelEvent* event) {
-    if (chart()) {
+    if (chart() && hasFocus()) {
         event->accept();
 
         static constexpr qreal FACTOR = 1.001;
@@ -50,15 +50,18 @@ void ChartView::wheelEvent(QWheelEvent* event) {
 }
 
 void ChartView::keyPressEvent(QKeyEvent* event) {
-    if (chart() && event->key() == Qt::Key_Escape) {
+    if (hasFocus() && chart() && event->key() == Qt::Key_Space) {
         event->accept();
         chart()->zoomReset();
+    } else if (hasFocus() && chart() && event->key() == Qt::Key_Escape) {
+        event->accept();
+        clearFocus();
     }
     QChartView::keyPressEvent(event);
 }
 
 void ChartView::mouseMoveEvent(QMouseEvent *event) {
-    if (chart() && event->buttons() & Qt::LeftButton) {
+    if (hasFocus() && chart() && event->buttons() & Qt::LeftButton) {
         event->accept();
         const QRectF bounds = chart()->plotArea();
 
