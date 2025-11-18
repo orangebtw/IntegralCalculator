@@ -19,6 +19,9 @@
 
 #include <expected>
 
+#include "../../widgets/resizablestackedwidget.hpp"
+#include "../../../diff.hpp"
+
 namespace exprtk {
     template <typename T>
     class expression;
@@ -33,23 +36,20 @@ namespace exprtk {
 class DiffMethodPageBase : public QScrollArea {
     Q_OBJECT
 public:
-    struct Result {
-        std::vector<std::pair<double, double>> data;
-    };
-
-    using CalculateResult = std::expected<Result, const char*>;
+    using CalculateResult = std::expected<std::vector<diff::Result>, const char*>;
 public:
     DiffMethodPageBase(const QString& title, QWidget* parent = nullptr);
 
 protected:
-    virtual CalculateResult calculateWithFixedStep(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) = 0;
-    virtual CalculateResult calculateWithVarStep(const std::string& expr) = 0;
+    virtual CalculateResult calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) = 0;
+    virtual CalculateResult calculate2(double x0, double y0, double dy0, double end, int steps, char dependentVar, char dependentVar2, char independentVar, const std::string& expr1, const std::string& expr2) = 0;
 
 protected:
     void plot_function(double a, double b, exprtk::expression<double>& expression);
 
 protected:
-    void addBaseInputs();
+    QWidget* createFirstOrderInputs();
+    QWidget* createSecondOrderInputs();
     void addOutputs();
 
     QWidget* createEpsilonInputContainer();
@@ -69,7 +69,8 @@ private:
     bool validate();
 
 protected:
-    QLineEdit* mExpressionEdit = nullptr;
+    QLineEdit* mFirstExpressionEdit = nullptr;
+    QLineEdit* mSecondExpressionEdit = nullptr;
     QLineEdit* mLowerBoundEdit = nullptr;
     QLineEdit* mUpperBoundEdit = nullptr;
     QLineEdit* mStepsAmountEdit = nullptr;
@@ -78,10 +79,13 @@ protected:
     QLayout* mMainLayout = nullptr;
     QLabel* mResultLabel = nullptr;
 
-    QLineEdit* mDependentVarEdit = nullptr;
-    QLineEdit* mIndependentVarEdit = nullptr;
-    QLineEdit* mStartValueEdit = nullptr;
+    QLineEdit* mFirstDependentVarEdit = nullptr;
+    QLineEdit* mSecondDependentVarEdit = nullptr;
+    QLineEdit* mStartYEdit = nullptr;
+    QLineEdit* mStartDyEdit = nullptr;
     QLineEdit* mStepEdit = nullptr;
+
+    QChar mIndependentVar = 'x';
 
     QTableView* mTable = nullptr;
     std::unique_ptr<QStandardItemModel> mModel = nullptr;
@@ -98,8 +102,11 @@ protected:
     double mMinY = 0.0;
     double mMaxY = 0.0;
 
-    QColor mFillColor = QColor("#75FF0000");
-    QColor mBorderColor = Qt::red;
+    QButtonGroup* mOrderGroup = nullptr;
+
+    QWidget* mFirstOrderInputsWidget = nullptr;
+    QWidget* mSecondOrderInputsWidget = nullptr;
+    ResizableStackedWidget* mInputsContainer = nullptr;
 };
 
 #endif
