@@ -15,7 +15,7 @@ class RungeKuttaPage final : public DiffMethodPageBase {
     Q_OBJECT
 
 public:
-    RungeKuttaPage(QWidget* parent = nullptr) : DiffMethodPageBase("Метод Рунге-Кутта", parent) {
+    RungeKuttaPage(bool secondOrder, QWidget* parent = nullptr) : DiffMethodPageBase(secondOrder, "Метод Рунге-Кутта", parent) {
     }
     
     ~RungeKuttaPage() = default;

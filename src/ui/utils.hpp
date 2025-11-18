@@ -32,4 +32,11 @@ inline QLabel* CreateLabel(const QString& text, float fontSize) {
     return label;
 }
 
+template <typename Func1, typename T>
+inline void BindVariable(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal, T& variable) {
+    QObject::connect(sender, signal, [&variable](const T& var) {
+        variable = var;
+    });
+}
+
 #endif // !UI_UTILS_HPP_

@@ -15,7 +15,7 @@ class EulerPage final : public DiffMethodPageBase {
     Q_OBJECT
 
 public:
-    EulerPage(QWidget* parent = nullptr) : DiffMethodPageBase("Метод Эйлера", parent) {
+    EulerPage(bool secondOrder, QWidget* parent = nullptr) : DiffMethodPageBase(secondOrder, "Метод Эйлера", parent) {
     }
     
     ~EulerPage() = default;

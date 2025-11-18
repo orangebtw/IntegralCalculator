@@ -38,7 +38,7 @@ class DiffMethodPageBase : public QScrollArea {
 public:
     using CalculateResult = std::expected<std::vector<diff::Result>, const char*>;
 public:
-    DiffMethodPageBase(const QString& title, QWidget* parent = nullptr);
+    DiffMethodPageBase(bool secondOrder, const QString& title, QWidget* parent = nullptr);
 
 protected:
     virtual CalculateResult calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) = 0;
@@ -52,11 +52,10 @@ protected:
     QWidget* createSecondOrderInputs();
     void addOutputs();
 
-    QWidget* createEpsilonInputContainer();
     QWidget* createStepsInputContainer();
 
 private:
-    void setupUi(const QString& title);
+    void setupUi(const QString& title, bool secondOrder);
 
     void setCalculateButtonCallback(std::function<void()> callback);
 
@@ -69,23 +68,22 @@ private:
     bool validate();
 
 protected:
-    QLineEdit* mFirstExpressionEdit = nullptr;
-    QLineEdit* mSecondExpressionEdit = nullptr;
-    QLineEdit* mLowerBoundEdit = nullptr;
-    QLineEdit* mUpperBoundEdit = nullptr;
-    QLineEdit* mStepsAmountEdit = nullptr;
-    QLineEdit* mEpsilonEdit = nullptr;
+    QString mFirstExpressionStr = "";
+    QString mSecondExpressionStr = "";
+    QString mLowerBoundStr = "0";
+    QString mUpperBoundStr = "1";
+    QString mStepsAmountStr = "";
+
+    QString mFirstDependentVarStr = "y";
+    QString mSecondDependentVarStr = "z";
+    QString mStartYStr = "0";
+    QString mStartDyStr = "0";
+
+    QChar mIndependentVar = 'x';
+
     QPushButton* mCalculateButton = nullptr;
     QLayout* mMainLayout = nullptr;
     QLabel* mResultLabel = nullptr;
-
-    QLineEdit* mFirstDependentVarEdit = nullptr;
-    QLineEdit* mSecondDependentVarEdit = nullptr;
-    QLineEdit* mStartYEdit = nullptr;
-    QLineEdit* mStartDyEdit = nullptr;
-    QLineEdit* mStepEdit = nullptr;
-
-    QChar mIndependentVar = 'x';
 
     QTableView* mTable = nullptr;
     std::unique_ptr<QStandardItemModel> mModel = nullptr;
@@ -101,12 +99,6 @@ protected:
     double mMaxX = 0.0;
     double mMinY = 0.0;
     double mMaxY = 0.0;
-
-    QButtonGroup* mOrderGroup = nullptr;
-
-    QWidget* mFirstOrderInputsWidget = nullptr;
-    QWidget* mSecondOrderInputsWidget = nullptr;
-    ResizableStackedWidget* mInputsContainer = nullptr;
 };
 
 #endif
