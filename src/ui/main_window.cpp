@@ -21,10 +21,6 @@
 #include "./pages/diff/euler.hpp"
 #include "./pages/diff/rungekutta.hpp"
 
-#include "./widgets/hboxwidget.hpp"
-#include "./widgets/vboxwidget.hpp"
-#include "src/ui/widgets/resizablestackedwidget.hpp"
-
 MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Калькулятор интегралов");
     setMinimumSize(800, 600);
@@ -107,84 +103,8 @@ void MainWindow::setupUi() {
     mContentWidget->insertWidget(MethodTabs::RightRectangles, new RightRectanglesPage());
     mContentWidget->insertWidget(MethodTabs::Trapezoid, new TrapezoidPage());
     mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonPage());
-
-    VBoxWidget* eulerPageContainer = new VBoxWidget();
-    {
-        ResizableStackedWidget* container = new ResizableStackedWidget();
-        container->insertWidget(0, new EulerPage(false));
-        container->insertWidget(1, new EulerPage(true));
-
-        QButtonGroup* orderGroup = new QButtonGroup();
-
-        HBoxWidget* orderButtonsContainer = new HBoxWidget();
-        orderButtonsContainer->setContentMargins(10, 0, 10, 0);
-        orderButtonsContainer->setSpacing(10);
-        orderButtonsContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-        orderButtonsContainer->layout()->setAlignment(Qt::AlignCenter);
-
-        QRadioButton* firstOrderButton = new QRadioButton("1-й порядок");
-        firstOrderButton->setChecked(true);
-        SetFontSize(firstOrderButton, 14.0f);
-
-        QRadioButton* secondOrderButton = new QRadioButton("2-й порядок");
-        SetFontSize(secondOrderButton, 14.0f);
-
-        orderButtonsContainer->addWidget(firstOrderButton);
-        orderButtonsContainer->addWidget(secondOrderButton);
-
-        orderGroup->addButton(firstOrderButton, 0);
-        orderGroup->addButton(secondOrderButton, 1);
-
-        QObject::connect(orderGroup, &QButtonGroup::idToggled, [container](int id, bool checked) {
-            if (checked) {
-                container->setCurrentIndex(id);
-            }
-        });
-
-        eulerPageContainer->addWidget(container);
-        eulerPageContainer->addWidget(orderButtonsContainer);
-    }
-    
-
-    VBoxWidget* rungeKuttaPageContainer = new VBoxWidget();
-    {
-        ResizableStackedWidget* container = new ResizableStackedWidget();
-        container->insertWidget(0, new RungeKuttaPage(false));
-        container->insertWidget(1, new RungeKuttaPage(true));
-
-        QButtonGroup* orderGroup = new QButtonGroup();
-
-        HBoxWidget* orderButtonsContainer = new HBoxWidget();
-        orderButtonsContainer->setContentMargins(10, 0, 10, 0);
-        orderButtonsContainer->setSpacing(10);
-        orderButtonsContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-        orderButtonsContainer->layout()->setAlignment(Qt::AlignCenter);
-
-        QRadioButton* firstOrderButton = new QRadioButton("1-й порядок");
-        firstOrderButton->setChecked(true);
-        SetFontSize(firstOrderButton, 14.0f);
-
-        QRadioButton* secondOrderButton = new QRadioButton("2-й порядок");
-        SetFontSize(secondOrderButton, 14.0f);
-
-        orderButtonsContainer->addWidget(firstOrderButton);
-        orderButtonsContainer->addWidget(secondOrderButton);
-
-        orderGroup->addButton(firstOrderButton, 0);
-        orderGroup->addButton(secondOrderButton, 1);
-
-        QObject::connect(orderGroup, &QButtonGroup::idToggled, [container](int id, bool checked) {
-            if (checked) {
-                container->setCurrentIndex(id);
-            }
-        });
-
-        rungeKuttaPageContainer->addWidget(container);
-        rungeKuttaPageContainer->addWidget(orderButtonsContainer);
-    }
-
-    mContentWidget->insertWidget(MethodTabs::Euler, eulerPageContainer);
-    mContentWidget->insertWidget(MethodTabs::RungeKutta, rungeKuttaPageContainer);
+    mContentWidget->insertWidget(MethodTabs::Euler, new EulerPage());
+    mContentWidget->insertWidget(MethodTabs::RungeKutta, new RungeKuttaPage());
 
     mainContainerLayout->addWidget(menuContainer);
     mainContainerLayout->addWidget(mContentWidget);

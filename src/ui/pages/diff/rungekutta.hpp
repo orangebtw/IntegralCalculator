@@ -15,14 +15,13 @@ class RungeKuttaPage final : public DiffMethodPageBase {
     Q_OBJECT
 
 public:
-    RungeKuttaPage(bool secondOrder, QWidget* parent = nullptr) : DiffMethodPageBase(secondOrder, "Метод Рунге-Кутта", parent) {
+    RungeKuttaPage(QWidget* parent = nullptr) : DiffMethodPageBase("Метод Рунге-Кутта", parent) {
     }
     
     ~RungeKuttaPage() = default;
 
 private:
-    virtual std::expected<std::vector<diff::Result>, const char*> calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) override;
-    virtual CalculateResult calculate2(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) override;
+    virtual CalculateResult calculate(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) override;
 
 private:
     QButtonGroup* mAlgorithmGroup = nullptr;

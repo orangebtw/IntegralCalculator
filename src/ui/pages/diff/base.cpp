@@ -13,6 +13,7 @@
 #include <QRadioButton>
 #include <algorithm>
 #include <qlineedit.h>
+#include <qnamespace.h>
 #include <qsizepolicy.h>
 
 #include "base.hpp"
@@ -25,10 +26,12 @@
     using namespace QtCharts;
 #endif
 
-DiffMethodPageBase::DiffMethodPageBase(bool secondOrder, const QString& title, QWidget* parent) : QScrollArea(parent) {
-    setupUi(title, secondOrder);
-    setCalculateButtonCallback([this, secondOrder] {
+DiffMethodPageBase::DiffMethodPageBase(const QString& title, QWidget* parent) : QScrollArea(parent) {
+    setupUi(title);
+    setCalculateButtonCallback([this] {
         if (!validate()) return;
+
+        mChart->removeAllSeries();
         
         QLocale locale = QLocale::system();
 
@@ -52,11 +55,11 @@ DiffMethodPageBase::DiffMethodPageBase(bool secondOrder, const QString& title, Q
             startValues.push_back(locale.toDouble(widget.startValueEdit->text()));
         };
 
-        double x_start = locale.toDouble(mLowerBoundStr);
-        double x_end = locale.toDouble(mUpperBoundStr);
+        double x_start = locale.toDouble(mLowerBoundEdit->text());
+        double x_end = locale.toDouble(mLowerBoundEdit->text());
         char independentVar = mIndependentVarStr.at(0).toLatin1();
         
-        auto result = calculate2(x_start, x_end, steps, independentVar, startValues, dependentVars, exprs);
+        auto result = calculate(x_start, x_end, steps, independentVar, startValues, dependentVars, exprs);
 
         if (result.has_value()) {
             auto& start = result->front();
@@ -72,16 +75,11 @@ DiffMethodPageBase::DiffMethodPageBase(bool secondOrder, const QString& title, Q
 
             double newMaxY = std::max(end[1], mMaxY);
             for (auto& var : end) {
-                newMaxY = std::min(var, newMaxY);
+                newMaxY = std::max(var, newMaxY);
             }
 
-            if (newMinX != mMinX || newMaxX != mMaxX) {
-                setup_x_axis_line(newMinX, newMaxX);
-            }
-
-            if (newMinY != mMinY || newMaxY != mMaxY) {
-                setup_y_axis_line(newMinY, newMaxY);
-            }
+            setup_x_axis_line(newMinX, newMaxX);
+            setup_y_axis_line(newMinY, newMaxY);
 
             mMinX = newMinX;
             mMinY = newMinY;
@@ -132,7 +130,7 @@ DiffMethodPageBase::DiffMethodPageBase(bool secondOrder, const QString& title, Q
     });
 }
 
-void DiffMethodPageBase::setupUi(const QString& title, bool secondOrder) {
+void DiffMethodPageBase::setupUi(const QString& title) {
     mMainLayout = new QVBoxLayout();
     QWidget* contents = new QWidget(this);
     contents->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -153,9 +151,10 @@ void DiffMethodPageBase::setupUi(const QString& title, bool secondOrder) {
 
     mChart = new QChart();
     mChart->setContentsMargins(0, 0, 0, 0);
+    mChart->legend()->hide();
 
     mAxisX = new QValueAxis();
-    mAxisX->setLabelFormat("%i");
+    mAxisX->setLabelFormat("%.2f");
     mAxisX->setTickAnchor(0.0);
     mChart->addAxis(mAxisX, Qt::AlignBottom);
     
@@ -177,36 +176,24 @@ void DiffMethodPageBase::setupUi(const QString& title, bool secondOrder) {
     mMainLayout->setSpacing(20);
     mMainLayout->addWidget(titleLabel);
 
-    if (secondOrder) {
-        mMainLayout->addWidget(createSecondOrderInputs());
-    } else {
-        mMainLayout->addWidget(createFirstOrderInputs());
-    }
+    
+    mMainLayout->addWidget(createInputs());
 
     addOutputs();
 }
 
 void DiffMethodPageBase::addOutputs() {
-    QPushButton* clearButton = new QPushButton("Очистить");
-    
-    QObject::connect(clearButton, &QPushButton::clicked, [this]() {
-        mChart->removeAllSeries();
-        mMinX = 0.0;
-        mMinY = 0.0;
-        mMaxX = 0.0;
-        mMaxY = 0.0;
-    });
-
     mMainLayout->addWidget(mCalculateButton);
     mMainLayout->addWidget(mResultLabel);
     mMainLayout->addWidget(CreateLabel("График", 22.0f, QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred)));
     mMainLayout->addWidget(mChartView);
-    mMainLayout->addWidget(clearButton);
     mMainLayout->addWidget(CreateLabel("Таблица", 22.0f, QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred)));
     mMainLayout->addWidget(mTable);
 }
 
-EquationInputWidget DiffMethodPageBase::createEquationInput(const QString& dependentVarStr, QString& independentVarStr, QWidget* parent) {
+void DiffMethodPageBase::addEquationInput(const QString& dependentVarStr, QString& independentVarStr, QWidget* parent) {
+    const uint32_t index = mEquationWidgets.size();
+
     QLineEdit* expressionEdit = new QLineEdit();
     SetFontSize(expressionEdit, 14.0f);
 
@@ -230,7 +217,7 @@ EquationInputWidget DiffMethodPageBase::createEquationInput(const QString& depen
         }
     });
 
-    HBoxWidget* equationContainer = new HBoxWidget(parent);
+    HBoxWidget* equationContainer = new HBoxWidget();
     equationContainer->setSpacing(10);
 
     VBoxWidget* lhsContainer = new VBoxWidget();
@@ -270,23 +257,24 @@ EquationInputWidget DiffMethodPageBase::createEquationInput(const QString& depen
     startValueContainer->addWidget(startValueLabel);
     startValueContainer->addWidget(startValueEdit);
 
-    return EquationInputWidget {
+    mEquationWidgets.push_back(EquationInputWidget {
+        .expressionEdit = expressionEdit,
         .dependentVarEdit = dependentVarEdit,
         .independentVarEdit = independentVarEdit,
-        .expressionEdit = expressionEdit,
         .startValueEdit = startValueEdit,
         .startValueLabel = startValueLabel,
         .equationContainer = equationContainer,
-        .startValueContainer = startValueContainer
-    };
+        .startValueContainer = startValueContainer,
+        .index = index
+    });
+
+    emit equationAdded(index);
 }
 
 void BindEquationToStartValue(const std::vector<EquationInputWidget>& equationInputList, size_t index, const QLineEdit* xStartEdit) {
-    QLabel* startValueLabel = equationInputList[index].startValueLabel;
-
-    QObject::connect(equationInputList[index].dependentVarEdit, &QLineEdit::textChanged, [xStartEdit, index, startValueLabel, &equationInputList](const QString& text) {
+    QObject::connect(equationInputList[index].dependentVarEdit, &QLineEdit::textChanged, [xStartEdit, index, &equationInputList](const QString& text) {
         if (!text.isEmpty()) {
-            startValueLabel->setText(QString("%1(%2) =").arg(text).arg(xStartEdit->text()));
+            equationInputList[index].startValueLabel->setText(QString("%1(%2) =").arg(text).arg(xStartEdit->text()));
         }
     });
 
@@ -301,59 +289,79 @@ void BindEquationToStartValue(const std::vector<EquationInputWidget>& equationIn
     });
 }
 
-QWidget* DiffMethodPageBase::createFirstOrderInputs() {
+void DiffMethodPageBase::equationAdded(int index) {
+    const EquationInputWidget& widget = mEquationWidgets[index];
+
+    mEquationListContainer->addWidget(widget.equationContainer);
+    mStartValueListContainer->addWidget(widget.startValueContainer);
+    BindEquationToStartValue(mEquationWidgets, index, mLowerBoundEdit);
+}
+
+void DiffMethodPageBase::equationRemoveClicked(int index) {
+    const EquationInputWidget& widget = mEquationWidgets[index];
+
+    mEquationListContainer->removeWidget(widget.equationContainer);
+    mStartValueListContainer->removeWidget(widget.startValueContainer);
+
+    delete widget.equationContainer;
+    delete widget.startValueContainer;
+
+    mEquationWidgets.erase(mEquationWidgets.begin() + index);
+}
+
+QWidget* DiffMethodPageBase::createInputs() {
     VBoxWidget* container = new VBoxWidget(this);
     container->layout()->setAlignment(Qt::AlignTop);
     container->setSpacing(20);
 
-    VBoxWidget* equationListContainer = new VBoxWidget(this);
-    equationListContainer->setSpacing(10);
+    mEquationListContainer = new VBoxWidget(this);
+    mEquationListContainer->setSpacing(10);
 
-    VBoxWidget* startValueListContainer = new VBoxWidget(this);
-    startValueListContainer->setSpacing(10);
+    mStartValueListContainer = new VBoxWidget(this);
+    mStartValueListContainer->setSpacing(10);
 
     QDoubleValidator* doubleValidator = new QDoubleValidator();
     doubleValidator->setNotation(QDoubleValidator::StandardNotation);
 
     HBoxWidget* lowerBoundContainer = new HBoxWidget();
-    QLineEdit* lowerBoundEdit = new QLineEdit(mLowerBoundStr);
-    lowerBoundEdit->setValidator(doubleValidator);
+    mLowerBoundEdit = new QLineEdit("0");
+    mLowerBoundEdit->setValidator(doubleValidator);
     lowerBoundContainer->addWidget(CreateLabel("Начало:", 12.0f));
-    lowerBoundContainer->addWidget(lowerBoundEdit);
+    lowerBoundContainer->addWidget(mLowerBoundEdit);
     lowerBoundContainer->setSpacing(5);
-    BindVariable(lowerBoundEdit, &QLineEdit::textChanged, mLowerBoundStr);
 
     HBoxWidget* upperBoundContainer = new HBoxWidget();
-    QLineEdit* upperBoundEdit = new QLineEdit(mUpperBoundStr);
+    QLineEdit* upperBoundEdit = new QLineEdit("1");
     upperBoundEdit->setValidator(doubleValidator);
     upperBoundContainer->addWidget(CreateLabel("Конец:", 12.0f));
     upperBoundContainer->addWidget(upperBoundEdit);
     upperBoundContainer->setSpacing(5);
-    BindVariable(upperBoundEdit, &QLineEdit::textChanged, mUpperBoundStr);
 
-    EquationInputWidget equationWidget = createEquationInput("y", mIndependentVarStr);
-    equationListContainer->addWidget(equationWidget.equationContainer);
-    startValueListContainer->addWidget(equationWidget.startValueContainer);
-    mEquationWidgets.push_back(equationWidget);
+    addEquationInput("y", mIndependentVarStr);
 
-    BindEquationToStartValue(mEquationWidgets, 0, lowerBoundEdit);
+    HBoxWidget* buttonsContainer = new HBoxWidget();
+    buttonsContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    buttonsContainer->layout()->setAlignment(Qt::AlignCenter);
+    buttonsContainer->setSpacing(5);
 
     QPushButton* addEquationButton = new QPushButton("Добавить");
+    QPushButton* removeEquationButton = new QPushButton("Удалить");
     // SetFontSize(addEquationButton, 14.0f);
 
-    QObject::connect(addEquationButton, &QPushButton::clicked, [this, lowerBoundEdit, equationListContainer, startValueListContainer]() {
-        const size_t index = mEquationWidgets.size();
-        
-        EquationInputWidget equationWidget = createEquationInput("z", mIndependentVarStr);
-        mEquationWidgets.push_back(equationWidget);
+    buttonsContainer->addWidget(addEquationButton);
+    buttonsContainer->addWidget(removeEquationButton);
 
-        equationListContainer->addWidget(equationWidget.equationContainer);
-        startValueListContainer->addWidget(equationWidget.startValueContainer);
-
-        BindEquationToStartValue(mEquationWidgets, index, lowerBoundEdit);
+    QObject::connect(addEquationButton, &QPushButton::clicked, [this, removeEquationButton]() {
+        addEquationInput("z", mIndependentVarStr);
+        removeEquationButton->setDisabled(mEquationWidgets.size() == 1);
     });
 
-    QObject::connect(lowerBoundEdit, &QLineEdit::textChanged, [this, startValueListContainer](const QString& text) {
+    QObject::connect(removeEquationButton, &QPushButton::clicked, [this, removeEquationButton]() {
+        emit equationRemoveClicked(mEquationWidgets.size() - 1);
+        removeEquationButton->setDisabled(mEquationWidgets.size() == 1);
+    }); 
+
+    QObject::connect(mLowerBoundEdit, &QLineEdit::textChanged, [this](const QString& text) {
         if (!text.isEmpty()) {
             const size_t n = mEquationWidgets.size();
 
@@ -364,68 +372,11 @@ QWidget* DiffMethodPageBase::createFirstOrderInputs() {
         }
     });
 
-    container->addWidget(equationListContainer);
-    container->addWidget(addEquationButton);
-    container->addWidget(startValueListContainer);
+    container->addWidget(mEquationListContainer);
+    container->addWidget(buttonsContainer);
+    container->addWidget(mStartValueListContainer);
     container->addWidget(lowerBoundContainer);
     container->addWidget(upperBoundContainer);
-    container->addWidget(createStepsInputContainer());
-
-    return container;
-}
-
-QWidget* DiffMethodPageBase::createSecondOrderInputs() {
-    VBoxWidget* container = new VBoxWidget();
-    container->layout()->setAlignment(Qt::AlignTop);
-    container->setSpacing(20);
-
-    QDoubleValidator* doubleValidator = new QDoubleValidator();
-    doubleValidator->setNotation(QDoubleValidator::StandardNotation);
-
-    HBoxWidget* lowerBoundContainer = new HBoxWidget();
-    QLineEdit* lowerBoundEdit = new QLineEdit(mLowerBoundStr);
-    lowerBoundEdit->setValidator(doubleValidator);
-    lowerBoundContainer->addWidget(CreateLabel("Начало:", 12.0f));
-    lowerBoundContainer->addWidget(lowerBoundEdit);
-    lowerBoundContainer->setSpacing(5);
-    BindVariable(lowerBoundEdit, &QLineEdit::textChanged, mLowerBoundStr);
-
-    HBoxWidget* upperBoundContainer = new HBoxWidget();
-    QLineEdit* upperBoundEdit = new QLineEdit(mUpperBoundStr);
-    upperBoundEdit->setValidator(doubleValidator);
-    upperBoundContainer->addWidget(CreateLabel("Конец:", 12.0f));
-    upperBoundContainer->addWidget(upperBoundEdit);
-    upperBoundContainer->setSpacing(5);
-    BindVariable(upperBoundEdit, &QLineEdit::textChanged, mUpperBoundStr);
-
-    EquationInputWidget firstEquationWidget = createEquationInput("y", mIndependentVarStr);
-    mEquationWidgets.push_back(firstEquationWidget);
-
-    EquationInputWidget secondEquationWidget = createEquationInput("z", mIndependentVarStr);
-    mEquationWidgets.push_back(secondEquationWidget);
-
-    BindEquationToStartValue(mEquationWidgets, 0, lowerBoundEdit);
-    BindEquationToStartValue(mEquationWidgets, 1, lowerBoundEdit);
-
-    // QObject::connect(secondEquationWidget.dependentVarEdit, &QLineEdit::textChanged, [startDyEdit, startDiffValueLabel](const QString& text) {
-    //     if (!text.isEmpty()) {
-    //         startDiffValueLabel->setText(QString("%1(%2) =").arg(text).arg(startDyEdit->text()));
-    //     }
-    // });
-
-    // QObject::connect(lowerBoundEdit, &QLineEdit::textChanged, [firstEquationWidget, secondEquationWidget, startValueLabel, startDiffValueLabel](const QString& text) {
-    //     if (!text.isEmpty()) {
-    //         startValueLabel->setText(QString("%1(%2) =").arg(firstEquationWidget.dependentVarEdit->text()).arg(text));
-    //         startDiffValueLabel->setText(QString("%1(%2) =").arg(secondEquationWidget.dependentVarEdit->text()).arg(text));
-    //     }
-    // });
-
-    container->addWidget(firstEquationWidget.equationContainer);
-    container->addWidget(secondEquationWidget.equationContainer);
-    container->addWidget(lowerBoundContainer);
-    container->addWidget(upperBoundContainer);
-    container->addWidget(firstEquationWidget.startValueContainer);
-    container->addWidget(secondEquationWidget.startValueContainer);
     container->addWidget(createStepsInputContainer());
 
     return container;
@@ -510,9 +461,9 @@ bool DiffMethodPageBase::validate() {
     if (!errorText.has_value()) {
         if (mIndependentVarStr.isEmpty()) {
             errorText = "Ошибка: введите независимую переменную.";
-        } else if (mLowerBoundStr.isEmpty()) {
+        } else if (mLowerBoundEdit->text().isEmpty()) {
             errorText = "Ошибка: введите начало.";
-        } else if (mUpperBoundStr.isEmpty()) {
+        } else if (mUpperBoundEdit->text().isEmpty()) {
             errorText = "Ошибка: введите конец.";
         } else {
             if (mStepsAmountStr.isEmpty()) {

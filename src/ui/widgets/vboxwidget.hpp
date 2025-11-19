@@ -20,6 +20,10 @@ public:
         mLayout->addWidget(widget, stretch, alignment);
     }
 
+    void removeWidget(QWidget* widget) {
+        mLayout->removeWidget(widget);
+    }
+
     void setContentMargins(int left, int top, int right, int bottom) {
         mLayout->setContentsMargins(left, top, right, bottom);
     }

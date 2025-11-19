@@ -19,7 +19,7 @@
 
 #include <expected>
 
-#include "../../../diff.hpp"
+#include "../../widgets/vboxwidget.hpp"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     using QtCharts::QChartView;
@@ -35,6 +35,7 @@ struct EquationInputWidget {
     QLabel* startValueLabel;
     QWidget* equationContainer;
     QWidget* startValueContainer;
+    uint32_t index;
 };
 
 class DiffMethodPageBase : public QScrollArea {
@@ -42,23 +43,21 @@ class DiffMethodPageBase : public QScrollArea {
 public:
     using CalculateResult = std::expected<std::vector<std::vector<double>>, const char*>;
 public:
-    DiffMethodPageBase(bool secondOrder, const QString& title, QWidget* parent = nullptr);
+    DiffMethodPageBase(const QString& title, QWidget* parent = nullptr);
 
 protected:
-    virtual std::expected<std::vector<diff::Result>, const char*> calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) = 0;
-    virtual CalculateResult calculate2(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) = 0;
+    virtual CalculateResult calculate(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) = 0;
 
 protected:
-    QWidget* createFirstOrderInputs();
-    QWidget* createSecondOrderInputs();
+    QWidget* createInputs();
     void addOutputs();
 
     QWidget* createStepsInputContainer();
 
-    EquationInputWidget createEquationInput(const QString& dependentVarStr, QString& independentVarStr, QWidget* parent = nullptr);
+    void addEquationInput(const QString& dependentVarStr, QString& independentVarStr, QWidget* parent = nullptr);
 
 private:
-    void setupUi(const QString& title, bool secondOrder);
+    void setupUi(const QString& title);
 
     void setCalculateButtonCallback(std::function<void()> callback);
 
@@ -70,12 +69,21 @@ private:
 
     bool validate();
 
+private slots:
+
+    void equationAdded(int index);
+    void equationRemoveClicked(int index);
+
 protected:
-    QString mLowerBoundStr = "0";
-    QString mUpperBoundStr = "1";
     QString mStepsAmountStr = "";
 
     QString mIndependentVarStr = "x";
+
+    VBoxWidget* mEquationListContainer = nullptr;
+    VBoxWidget* mStartValueListContainer = nullptr;
+
+    QLineEdit* mLowerBoundEdit = nullptr;
+    QLineEdit* mUpperBoundEdit = nullptr;
 
     std::vector<EquationInputWidget> mEquationWidgets;
 
