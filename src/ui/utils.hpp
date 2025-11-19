@@ -13,17 +13,15 @@ inline void SetFontSize(T* widget, float fontSize) {
 }
 
 template <typename T>
-inline void SetForegroundColor(T* widget, QColor color) {
-    QPalette palette = widget->palette();
-    palette.setColor(widget->foregroundRole(), color);
-    widget->setPalette(palette);
-}
-
-template <typename T>
 inline void SetColor(T* widget, QPalette::ColorRole role, QColor color) {
     QPalette palette = widget->palette();
     palette.setColor(role, color);
     widget->setPalette(palette);
+}
+
+template <typename T>
+inline void SetForegroundColor(T* widget, QColor color) {
+    SetColor(widget, widget->foregroundRole(), color);
 }
 
 inline QLabel* CreateLabel(const QString& text, float fontSize, QSizePolicy sizePolicy = QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed)) {

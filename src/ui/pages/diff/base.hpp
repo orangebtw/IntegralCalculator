@@ -21,16 +21,21 @@
 
 #include "../../../diff.hpp"
 
-namespace exprtk {
-    template <typename T>
-    class expression;
-}
-
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     using QtCharts::QChartView;
     using QtCharts::QChart;
     using QtCharts::QValueAxis;
 #endif
+
+struct EquationInputWidget {
+    QLineEdit* expressionEdit;
+    QLineEdit* dependentVarEdit;
+    QLineEdit* independentVarEdit;
+    QLineEdit* startValueEdit;
+    QLabel* startValueLabel;
+    QWidget* equationContainer;
+    QWidget* startValueContainer;
+};
 
 class DiffMethodPageBase : public QScrollArea {
     Q_OBJECT
@@ -50,6 +55,8 @@ protected:
 
     QWidget* createStepsInputContainer();
 
+    EquationInputWidget createEquationInput(const QString& dependentVarStr, QString& independentVarStr, QWidget* parent = nullptr);
+
 private:
     void setupUi(const QString& title, bool secondOrder);
 
@@ -64,18 +71,13 @@ private:
     bool validate();
 
 protected:
-    QString mFirstExpressionStr = "";
-    QString mSecondExpressionStr = "";
     QString mLowerBoundStr = "0";
     QString mUpperBoundStr = "1";
     QString mStepsAmountStr = "";
 
-    QString mFirstDependentVarStr = "y";
-    QString mSecondDependentVarStr = "z";
-    QString mStartYStr = "0";
-    QString mStartDyStr = "0";
+    QString mIndependentVarStr = "x";
 
-    QChar mIndependentVar = 'x';
+    std::vector<EquationInputWidget> mEquationWidgets;
 
     QPushButton* mCalculateButton = nullptr;
     QLayout* mMainLayout = nullptr;
