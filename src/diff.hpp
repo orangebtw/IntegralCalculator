@@ -71,25 +71,37 @@ inline std::vector<Result> rungekutta(double x0, double y0, double h, int n, dou
     return data;
 }
 
-inline std::vector<Result> euler2(double x0, double y0, double dy0, double h, int n, double& x, double& u, double& v, exprtk::expression<double>& expr1, exprtk::expression<double>& expr2) {
-    x = x0;
-    u = y0;
-    v = dy0;
-
-    std::vector<Result> data;
+inline std::vector<std::vector<double>> euler2(double h, int n, double& x, std::vector<double>& vars, const std::vector<exprtk::expression<double>>& exprs) {
+    std::vector<std::vector<double>> data;
     data.reserve(n);
 
-    data.push_back({x, u, v});
-    
+    std::vector<double> outVars;
+    outVars.reserve(vars.size() + 1);
+
+    outVars.push_back(x);
+    for (auto var : vars) {
+        outVars.push_back(var);
+    }
+
+    data.push_back(outVars);
+
+    const uint32_t size = vars.size();
+
     while (n > 0) {
-        double du = expr1.value();
-        double dv = expr2.value();
-        
-        u = u + h * du;
-        v = v + h * dv;
+        for (uint32_t i = 0; i < size; ++i) {
+            vars[i] = vars[i] + h * exprs[i].value();
+        }
         x = x + h;
+
+        std::vector<double> outVars;
+        outVars.reserve(vars.size() + 1);
+
+        outVars.push_back(x);
+        for (auto var : vars) {
+            outVars.push_back(var);
+        }
         
-        data.push_back({x, u, v});
+        data.push_back(outVars);
         --n;
     }
 

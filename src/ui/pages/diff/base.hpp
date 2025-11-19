@@ -40,13 +40,13 @@ struct EquationInputWidget {
 class DiffMethodPageBase : public QScrollArea {
     Q_OBJECT
 public:
-    using CalculateResult = std::expected<std::vector<diff::Result>, const char*>;
+    using CalculateResult = std::expected<std::vector<std::vector<double>>, const char*>;
 public:
     DiffMethodPageBase(bool secondOrder, const QString& title, QWidget* parent = nullptr);
 
 protected:
-    virtual CalculateResult calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) = 0;
-    virtual CalculateResult calculate2(double x0, double y0, double dy0, double end, int steps, char dependentVar, char dependentVar2, char independentVar, const std::string& expr1, const std::string& expr2) = 0;
+    virtual std::expected<std::vector<diff::Result>, const char*> calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) = 0;
+    virtual CalculateResult calculate2(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) = 0;
 
 protected:
     QWidget* createFirstOrderInputs();

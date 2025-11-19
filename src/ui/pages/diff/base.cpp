@@ -11,6 +11,7 @@
 #include <QHeaderView>
 #include <QButtonGroup>
 #include <QRadioButton>
+#include <algorithm>
 #include <qlineedit.h>
 #include <qsizepolicy.h>
 
@@ -31,48 +32,47 @@ DiffMethodPageBase::DiffMethodPageBase(bool secondOrder, const QString& title, Q
         
         QLocale locale = QLocale::system();
 
-        CalculateResult result;
-
         int steps = mStepsAmountStr.toInt();
 
-        if (!secondOrder) {
-            std::string expr = mEquationWidgets[0].expressionEdit->text().toStdString();
-            double a = locale.toDouble(mLowerBoundStr);
-            double b = locale.toDouble(mUpperBoundStr);
-            char dependentVar = mEquationWidgets[0].dependentVarEdit->text().at(0).toLatin1();
-            char independentVar = mIndependentVarStr.at(0).toLatin1();
-    
-            double startValue = locale.toDouble(mEquationWidgets[0].startValueEdit->text());
-            
-            result = calculate(a, startValue, b, steps, dependentVar, independentVar, expr);
-        } else if (secondOrder) {
-            std::string expr1 = mEquationWidgets[0].expressionEdit->text().toStdString();
-            std::string expr2 = mEquationWidgets[1].expressionEdit->text().toStdString();
-
-            double x_start = locale.toDouble(mLowerBoundStr);
-            double x_end = locale.toDouble(mUpperBoundStr);
-            char dependentVar1 = mEquationWidgets[0].dependentVarEdit->text().at(0).toLatin1();
-            char dependentVar2 = mEquationWidgets[1].dependentVarEdit->text().at(0).toLatin1();
-            char independentVar = mIndependentVarStr.at(0).toLatin1();
-    
-            double y0 = locale.toDouble(mEquationWidgets[0].startValueEdit->text());
-            double dy0 = locale.toDouble(mEquationWidgets[1].startValueEdit->text());
-            
-            result = calculate2(x_start, y0, dy0, x_end, steps, dependentVar1, dependentVar2, independentVar, expr1, expr2);
+        std::vector<std::string> exprs;
+        exprs.reserve(mEquationWidgets.size());
+        for (const auto& widget : mEquationWidgets) {
+            exprs.push_back(widget.expressionEdit->text().toStdString());
         }
+
+        std::vector<char> dependentVars;
+        dependentVars.reserve(mEquationWidgets.size());
+        for (const auto& widget : mEquationWidgets) {
+            dependentVars.push_back(widget.dependentVarEdit->text().at(0).toLatin1());
+        };
+
+        std::vector<double> startValues;
+        startValues.reserve(mEquationWidgets.size());
+        for (const auto& widget : mEquationWidgets) {
+            startValues.push_back(locale.toDouble(widget.startValueEdit->text()));
+        };
+
+        double x_start = locale.toDouble(mLowerBoundStr);
+        double x_end = locale.toDouble(mUpperBoundStr);
+        char independentVar = mIndependentVarStr.at(0).toLatin1();
+        
+        auto result = calculate2(x_start, x_end, steps, independentVar, startValues, dependentVars, exprs);
 
         if (result.has_value()) {
             auto& start = result->front();
             auto& end = result->back();
 
-            double newMinX = std::min(std::get<0>(start), mMinX);
-            double newMaxX = std::max(std::get<0>(end), mMaxX);
+            double newMinX = std::min(start[0], mMinX);
+            double newMaxX = std::max(end[0], mMaxX);
 
-            double newMinY = std::min(std::get<1>(end), mMinY);
-            double newMaxY = std::max(std::get<1>(end), mMaxY);
-            if (secondOrder) {
-                newMinY = std::min(std::get<2>(start), newMinY);
-                newMaxY = std::max(std::get<2>(end), newMaxY);
+            double newMinY = std::min(start[1], mMinY);
+            for (auto& var : start) {
+                newMinY = std::min(var, newMinY);
+            }
+
+            double newMaxY = std::max(end[1], mMaxY);
+            for (auto& var : end) {
+                newMaxY = std::min(var, newMaxY);
             }
 
             if (newMinX != mMinX || newMaxX != mMaxX) {
@@ -88,39 +88,32 @@ DiffMethodPageBase::DiffMethodPageBase(bool secondOrder, const QString& title, Q
             mMaxX = newMaxX;
             mMaxY = newMaxY;
 
-            mModel.reset(new QStandardItemModel(result->size(), secondOrder ? 3 : 2));
-            if (secondOrder) {
-                mModel->setHorizontalHeaderLabels({"x", "y", "y'"});
-            } else {
-                mModel->setHorizontalHeaderLabels({"x", "y"});
+            QStringList headerLabels;
+            headerLabels.append("x");
+            for (auto var : dependentVars) {
+                headerLabels.append(QString(var));
             }
 
-            QLineSeries* series = new QLineSeries();
-            series->setUseOpenGL(true);
-            series->setName(QString("%1 шагов").arg(steps));
+            mModel.reset(new QStandardItemModel(result->size(), dependentVars.size() + 1));
+            mModel->setHorizontalHeaderLabels(headerLabels);
+
+            const uint32_t rowLength = start.size();
 
             for (int row = 0; row < result->size(); ++row) {
-                double x = std::get<0>(result.value()[row]);
-                double y = std::get<1>(result.value()[row]);
-
-                mModel->setItem(row, 0, new QStandardItem(QString::number(x)));
-                mModel->setItem(row, 1, new QStandardItem(QString::number(y)));
-
-                series->append(QPointF(x, y));
+                auto& data = result.value()[row];
+                for (int i = 0; i < rowLength; ++i) {
+                    mModel->setItem(row, i, new QStandardItem(QString::number(data[i])));
+                }
             }
 
-            if (secondOrder) {
+            for (int i = 1; i < rowLength; ++i) {
                 QLineSeries* series = new QLineSeries();
                 series->setUseOpenGL(true);
                 series->setName(QString("%1 шагов").arg(steps));
 
                 for (int row = 0; row < result->size(); ++row) {
-                    double x = std::get<0>(result.value()[row]);
-                    double dy = std::get<2>(result.value()[row]);
-
-                    mModel->setItem(row, 2, new QStandardItem(QString::number(dy)));
-
-                    series->append(QPointF(x, dy));
+                    auto& data = result.value()[row];
+                    series->append(data[0], data[i]);
                 }
 
                 mChart->addSeries(series);
@@ -128,11 +121,6 @@ DiffMethodPageBase::DiffMethodPageBase(bool secondOrder, const QString& title, Q
                 series->attachAxis(mAxisX);
                 series->attachAxis(mAxisY);
             }
-
-            mChart->addSeries(series);
-
-            series->attachAxis(mAxisX);
-            series->attachAxis(mAxisY);
 
             mTable->setModel(mModel.get());
             mTable->horizontalHeader()->setStretchLastSection(true);
