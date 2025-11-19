@@ -77,12 +77,10 @@ inline std::vector<std::vector<double>> euler2(double h, int n, double& x, std::
 
     std::vector<double> outVars;
     outVars.reserve(vars.size() + 1);
-
     outVars.push_back(x);
     for (auto var : vars) {
         outVars.push_back(var);
     }
-
     data.push_back(outVars);
 
     const uint32_t size = vars.size();
@@ -105,12 +103,10 @@ inline std::vector<std::vector<double>> euler2(double h, int n, double& x, std::
 
         std::vector<double> outVars;
         outVars.reserve(vars.size() + 1);
-
         outVars.push_back(x);
         for (auto var : vars) {
             outVars.push_back(var);
         }
-        
         data.push_back(outVars);
         --n;
     }

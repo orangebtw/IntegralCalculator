@@ -56,7 +56,7 @@ DiffMethodPageBase::DiffMethodPageBase(const QString& title, QWidget* parent) : 
         };
 
         double x_start = locale.toDouble(mLowerBoundEdit->text());
-        double x_end = locale.toDouble(mLowerBoundEdit->text());
+        double x_end = locale.toDouble(mUpperBoundEdit->text());
         char independentVar = mIndependentVarStr.at(0).toLatin1();
         
         auto result = calculate(x_start, x_end, steps, independentVar, startValues, dependentVars, exprs);
@@ -331,10 +331,10 @@ QWidget* DiffMethodPageBase::createInputs() {
     lowerBoundContainer->setSpacing(5);
 
     HBoxWidget* upperBoundContainer = new HBoxWidget();
-    QLineEdit* upperBoundEdit = new QLineEdit("1");
-    upperBoundEdit->setValidator(doubleValidator);
+    mUpperBoundEdit = new QLineEdit("1");
+    mUpperBoundEdit->setValidator(doubleValidator);
     upperBoundContainer->addWidget(CreateLabel("Конец:", 12.0f));
-    upperBoundContainer->addWidget(upperBoundEdit);
+    upperBoundContainer->addWidget(mUpperBoundEdit);
     upperBoundContainer->setSpacing(5);
 
     addEquationInput("y", mIndependentVarStr);
