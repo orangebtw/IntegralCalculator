@@ -119,13 +119,15 @@ void MainWindow::setupUi() {
         HBoxWidget* orderButtonsContainer = new HBoxWidget();
         orderButtonsContainer->setContentMargins(10, 0, 10, 0);
         orderButtonsContainer->setSpacing(10);
+        orderButtonsContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+        orderButtonsContainer->layout()->setAlignment(Qt::AlignCenter);
 
         QRadioButton* firstOrderButton = new QRadioButton("1-й порядок");
         firstOrderButton->setChecked(true);
-        SetFontSize(firstOrderButton, 12.0f);
+        SetFontSize(firstOrderButton, 14.0f);
 
         QRadioButton* secondOrderButton = new QRadioButton("2-й порядок");
-        SetFontSize(secondOrderButton, 12.0f);
+        SetFontSize(secondOrderButton, 14.0f);
 
         orderButtonsContainer->addWidget(firstOrderButton);
         orderButtonsContainer->addWidget(secondOrderButton);
@@ -155,13 +157,15 @@ void MainWindow::setupUi() {
         HBoxWidget* orderButtonsContainer = new HBoxWidget();
         orderButtonsContainer->setContentMargins(10, 0, 10, 0);
         orderButtonsContainer->setSpacing(10);
+        orderButtonsContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+        orderButtonsContainer->layout()->setAlignment(Qt::AlignCenter);
 
         QRadioButton* firstOrderButton = new QRadioButton("1-й порядок");
         firstOrderButton->setChecked(true);
-        SetFontSize(firstOrderButton, 12.0f);
+        SetFontSize(firstOrderButton, 14.0f);
 
         QRadioButton* secondOrderButton = new QRadioButton("2-й порядок");
-        SetFontSize(secondOrderButton, 12.0f);
+        SetFontSize(secondOrderButton, 14.0f);
 
         orderButtonsContainer->addWidget(firstOrderButton);
         orderButtonsContainer->addWidget(secondOrderButton);
