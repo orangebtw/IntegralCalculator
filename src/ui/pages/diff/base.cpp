@@ -11,10 +11,11 @@
 #include <QHeaderView>
 #include <QButtonGroup>
 #include <QRadioButton>
+#include <QLineEdit>
+#include <QRegularExpressionValidator>
+#include <QSizePolicy>
 #include <algorithm>
-#include <qlineedit.h>
 #include <qnamespace.h>
-#include <qsizepolicy.h>
 
 #include "base.hpp"
 #include "../../widgets/chartview.hpp"
@@ -143,6 +144,7 @@ void DiffMethodPageBase::setupUi(const QString& title) {
     mCalculateButton = new QPushButton("Вычислить");
 
     mResultLabel = new QLabel();
+    mResultLabel->hide();
     SetFontSize(mResultLabel, 18.0f);
 
     QLabel* titleLabel = CreateLabel(title, 36.0f);
@@ -192,12 +194,15 @@ void DiffMethodPageBase::addOutputs() {
 }
 
 void DiffMethodPageBase::addEquationInput(const QString& dependentVarStr, QString& independentVarStr, QWidget* parent) {
+    const QValidator* varValidator = new QRegularExpressionValidator(QRegularExpression("[A-Za-z]"));
+
     const uint32_t index = mEquationWidgets.size();
 
     QLineEdit* dependentVarEdit = new QLineEdit(dependentVarStr);
     dependentVarEdit->setMaxLength(1);
     dependentVarEdit->setFixedWidth(25);
     dependentVarEdit->setAlignment(Qt::AlignCenter);
+    dependentVarEdit->setValidator(varValidator);
     // mDependentVarEdit->setFrame(false);
     SetFontSize(dependentVarEdit, 12.0f);
     
@@ -205,6 +210,7 @@ void DiffMethodPageBase::addEquationInput(const QString& dependentVarStr, QStrin
     independentVarEdit->setMaxLength(1);
     independentVarEdit->setFixedWidth(25);
     independentVarEdit->setAlignment(Qt::AlignCenter);
+    independentVarEdit->setValidator(varValidator);
     // independentVarEdit->setFrame(false);
     SetFontSize(independentVarEdit, 12.0f);
 
@@ -271,30 +277,27 @@ void DiffMethodPageBase::addEquationInput(const QString& dependentVarStr, QStrin
     emit equationAdded(index);
 }
 
-void BindEquationToStartValue(const std::vector<EquationInputWidget>& equationInputList, size_t index, const QLineEdit* xStartEdit) {
-    QObject::connect(equationInputList[index].dependentVarEdit, &QLineEdit::textChanged, [xStartEdit, index, &equationInputList](const QString& text) {
-        if (!text.isEmpty()) {
-            equationInputList[index].startValueLabel->setText(QString("%1(%2) =").arg(text).arg(xStartEdit->text()));
-        }
-    });
-
-    QObject::connect(equationInputList[index].independentVarEdit, &QLineEdit::textChanged, [xStartEdit, index, &equationInputList](const QString& text) {
-        if (!text.isEmpty()) {
-            for (size_t i = 0; i < equationInputList.size(); ++i) {
-                if (i == index) continue;
-                const EquationInputWidget& widget = equationInputList[i];
-                widget.independentVarEdit->setText(text);
-            }
-        }
-    });
-}
-
 void DiffMethodPageBase::equationAdded(int index) {
     const EquationInputWidget& widget = mEquationWidgets[index];
 
     mEquationListContainer->addWidget(widget.equationContainer);
     mStartValueListContainer->addWidget(widget.startValueContainer);
-    BindEquationToStartValue(mEquationWidgets, index, mLowerBoundEdit);
+
+    QObject::connect(widget.dependentVarEdit, &QLineEdit::textChanged, [this, &widget](const QString& text) {
+        if (!text.isEmpty()) {
+            widget.startValueLabel->setText(QString("%1(%2) =").arg(text).arg(mLowerBoundEdit->text()));
+        }
+    });
+
+    QObject::connect(mEquationWidgets[index].independentVarEdit, &QLineEdit::textChanged, [this, index](const QString& text) {
+        if (!text.isEmpty()) {
+            for (size_t i = 0; i < mEquationWidgets.size(); ++i) {
+                if (i == index) continue;
+                const EquationInputWidget& widget = mEquationWidgets[i];
+                widget.independentVarEdit->setText(text);
+            }
+        }
+    });
 
     for (uint32_t i = 1; i < mEquationWidgets.size(); ++i) {
         QWidget::setTabOrder({
@@ -410,6 +413,7 @@ void DiffMethodPageBase::setError(const QString& errorText) {
     palette.setColor(mResultLabel->foregroundRole(), Qt::red);
     mResultLabel->setPalette(palette);
     mResultLabel->setText(errorText);
+    mResultLabel->show();
 }
 
 void DiffMethodPageBase::setResult(const QString& resultText) {
@@ -417,6 +421,7 @@ void DiffMethodPageBase::setResult(const QString& resultText) {
     palette.setColor(mResultLabel->foregroundRole(), Qt::black);
     mResultLabel->setPalette(palette);
     mResultLabel->setText(resultText);
+    mResultLabel->show();
 }
 
 void DiffMethodPageBase::setup_x_axis_line(double x_min, double x_max) {
@@ -463,14 +468,20 @@ void DiffMethodPageBase::setup_y_axis_line(double y_min, double y_max) {
 }
 
 bool DiffMethodPageBase::validate() {
+    mResultLabel->hide();
+
     std::optional<QString> errorText;
 
     for (uint32_t i = 0; i < mEquationWidgets.size(); ++i) {
         const EquationInputWidget& widget = mEquationWidgets[i];
         if (widget.dependentVarEdit->text().isEmpty()) {
-            errorText = QString("Ошибка: введите зависимую переменную для %1 уравнения.").arg(i+1);
+            errorText = QString("Ошибка в %1 уравнении: введите зависимую переменную.").arg(i+1);
         } else if (widget.expressionEdit->text().isEmpty()) {
-            errorText = QString("Ошибка: введите функцию для %1 уравнения.").arg(i+1);
+            errorText = QString("Ошибка в %1 уравнении: введите функцию.").arg(i+1);
+        } else if (widget.dependentVarEdit->text() == mIndependentVarStr) {
+            errorText = QString("Ошибка в %1 уравнении: зависимая и независимая переменная должны быть разными.").arg(i+1);
+        } else if (widget.startValueEdit->text().isEmpty()) {
+            errorText = QString("Ошибка: введите значение для %1(%2).").arg(widget.dependentVarEdit->text()).arg(mLowerBoundEdit->text());
         }
 
         if (errorText)

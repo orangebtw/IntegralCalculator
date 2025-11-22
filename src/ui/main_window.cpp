@@ -45,7 +45,6 @@ static QPushButton* CreatePageButton(const QString& title) {
     button->setText(title);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     button->setFixedHeight(40);
-    button->setAutoFillBackground(true);
     return button;
 }
 
