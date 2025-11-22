@@ -97,6 +97,9 @@ protected:
     QLineSeries* mAxisXSeries = nullptr;
     QLineSeries* mAxisYSeries = nullptr;
 
+    QPushButton* mAddEquationButton = nullptr;
+    QPushButton* mRemoveEquationButton = nullptr;
+
     QChart* mChart = nullptr;
     QChartView* mChartView = nullptr;
     QValueAxis* mAxisX = nullptr;
