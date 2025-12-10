@@ -19,12 +19,7 @@
 
 #include <expected>
 
-#include "../../../diff.hpp"
-
-namespace exprtk {
-    template <typename T>
-    class expression;
-}
+#include "../../widgets/vboxwidget.hpp"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     using QtCharts::QChartView;
@@ -32,26 +27,37 @@ namespace exprtk {
     using QtCharts::QValueAxis;
 #endif
 
+struct EquationInputWidget {
+    QLineEdit* expressionEdit;
+    QLineEdit* dependentVarEdit;
+    QLineEdit* independentVarEdit;
+    QLineEdit* startValueEdit;
+    QLabel* startValueLabel;
+    QWidget* equationContainer;
+    QWidget* startValueContainer;
+    uint32_t index;
+};
+
 class DiffMethodPageBase : public QScrollArea {
     Q_OBJECT
 public:
-    using CalculateResult = std::expected<std::vector<diff::Result>, const char*>;
+    using CalculateResult = std::expected<std::vector<std::vector<double>>, const char*>;
 public:
-    DiffMethodPageBase(bool secondOrder, const QString& title, QWidget* parent = nullptr);
+    DiffMethodPageBase(const QString& title, QWidget* parent = nullptr);
 
 protected:
-    virtual CalculateResult calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) = 0;
-    virtual CalculateResult calculate2(double x0, double y0, double dy0, double end, int steps, char dependentVar, char dependentVar2, char independentVar, const std::string& expr1, const std::string& expr2) = 0;
+    virtual CalculateResult calculate(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) = 0;
 
 protected:
-    QWidget* createFirstOrderInputs();
-    QWidget* createSecondOrderInputs();
+    QWidget* createInputs();
     void addOutputs();
 
     QWidget* createStepsInputContainer();
 
+    void addEquationInput(const QString& dependentVarStr, QString& independentVarStr, QWidget* parent = nullptr);
+
 private:
-    void setupUi(const QString& title, bool secondOrder);
+    void setupUi(const QString& title);
 
     void setCalculateButtonCallback(std::function<void()> callback);
 
@@ -63,19 +69,23 @@ private:
 
     bool validate();
 
+private slots:
+
+    void equationAdded(int index);
+    void equationRemoveClicked(int index);
+
 protected:
-    QString mFirstExpressionStr = "";
-    QString mSecondExpressionStr = "";
-    QString mLowerBoundStr = "0";
-    QString mUpperBoundStr = "1";
     QString mStepsAmountStr = "";
 
-    QString mFirstDependentVarStr = "y";
-    QString mSecondDependentVarStr = "z";
-    QString mStartYStr = "0";
-    QString mStartDyStr = "0";
+    QString mIndependentVarStr = "x";
 
-    QChar mIndependentVar = 'x';
+    VBoxWidget* mEquationListContainer = nullptr;
+    VBoxWidget* mStartValueListContainer = nullptr;
+
+    QLineEdit* mLowerBoundEdit = nullptr;
+    QLineEdit* mUpperBoundEdit = nullptr;
+
+    std::vector<EquationInputWidget> mEquationWidgets;
 
     QPushButton* mCalculateButton = nullptr;
     QLayout* mMainLayout = nullptr;
@@ -86,6 +96,9 @@ protected:
 
     QLineSeries* mAxisXSeries = nullptr;
     QLineSeries* mAxisYSeries = nullptr;
+
+    QPushButton* mAddEquationButton = nullptr;
+    QPushButton* mRemoveEquationButton = nullptr;
 
     QChart* mChart = nullptr;
     QChartView* mChartView = nullptr;

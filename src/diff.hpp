@@ -71,76 +71,120 @@ inline std::vector<Result> rungekutta(double x0, double y0, double h, int n, dou
     return data;
 }
 
-inline std::vector<Result> euler2(double x0, double y0, double dy0, double h, int n, double& x, double& u, double& v, exprtk::expression<double>& expr1, exprtk::expression<double>& expr2) {
-    x = x0;
-    u = y0;
-    v = dy0;
-
-    std::vector<Result> data;
+inline std::vector<std::vector<double>> euler2(double h, int n, double& x, std::vector<double>& vars, const std::vector<exprtk::expression<double>>& exprs) {
+    std::vector<std::vector<double>> data;
     data.reserve(n);
 
-    data.push_back({x, u, v});
-    
+    std::vector<double> outVars;
+    outVars.reserve(vars.size() + 1);
+    outVars.push_back(x);
+    for (auto var : vars) {
+        outVars.push_back(var);
+    }
+    data.push_back(outVars);
+
+    const uint32_t size = vars.size();
+
+    std::vector<double> tempVars(size);
+
     while (n > 0) {
-        double du = expr1.value();
-        double dv = expr2.value();
-        
-        u = u + h * du;
-        v = v + h * dv;
+        for (uint32_t i = 0; i < size; ++i) {
+            tempVars[i] = vars[i];
+        }
+
+        for (uint32_t i = 0; i < size; ++i) {
+            tempVars[i] = tempVars[i] + h * exprs[i].value();
+        }
+
+        for (uint32_t i = 0; i < size; ++i) {
+            vars[i] = tempVars[i];
+        }
         x = x + h;
-        
-        data.push_back({x, u, v});
+
+        std::vector<double> outVars;
+        outVars.reserve(vars.size() + 1);
+        outVars.push_back(x);
+        for (auto var : vars) {
+            outVars.push_back(var);
+        }
+        data.push_back(outVars);
         --n;
     }
 
     return data;
 }
 
-inline std::vector<Result> rungekutta2(double x0, double y0, double dy0, double h, int n, double& x, double& u, double& v, exprtk::expression<double>& expr1, exprtk::expression<double>& expr2) {
-    x = x0;
-    u = y0;
-    v = dy0;
-
-    std::vector<Result> data;
+inline std::vector<std::vector<double>> rungekutta2(double h, int n, double& x, std::vector<double>& vars, const std::vector<exprtk::expression<double>>& exprs) {
+    std::vector<std::vector<double>> data;
     data.reserve(n);
+
+    std::vector<double> outVars;
+    outVars.reserve(n);
+    outVars.push_back(x);
+    for (double var : vars) {
+        outVars.push_back(var);
+    }
     
-    data.push_back({x, u, v});
+    data.push_back(outVars);
 
-    double sx;
-    double su;
-    double sv;
+    const uint32_t length = vars.size();
 
-    while (n > 0) {
-        sx = x;
-        su = u;
-        sv = v;
+    double tempX;
+    std::vector<double> tempVars(length);
+    std::vector<double> k1(length);
+    std::vector<double> k2(length);
+    std::vector<double> k3(length);
+    std::vector<double> k4(length);
 
-        double k1_u = expr1.value();
-        double k1_v = expr2.value();
+    while (n > 0) {        
+        tempX = x;
+        for (uint32_t i = 0; i < length; ++i) {
+            tempVars[i] = vars[i];
+        }
 
-        x = sx + h / 2.0;
-        u = su + h / 2.0 * k1_u;
-        v = sv + h / 2.0 * k1_v;
-        double k2_u = expr1.value();
-        double k2_v = expr2.value();
 
-        x = sx + h / 2.0;
-        u = su + h / 2.0 * k2_u;
-        v = sv + h / 2.0 * k2_v;
-        double k3_u = expr1.value();
-        double k3_v = expr2.value();
+        for (uint32_t i = 0; i < length; ++i) {
+            k1[i] = exprs[i].value();
+        }
 
-        x = sx + h;
-        u = su + h * k3_u;
-        v = sv + h * k3_v;
-        double k4_u = expr1.value();
-        double k4_v = expr2.value();
+
+        x = tempX + h / 2.0;
+        for (uint32_t i = 0; i < length; ++i) {
+            vars[i] = tempVars[i] + h / 2.0 * k1[i];
+        }
+        for (uint32_t i = 0; i < length; ++i) {
+            k2[i] = exprs[i].value();
+        }
+
+        x = tempX + h / 2.0;
+        for (uint32_t i = 0; i < length; ++i) {
+            vars[i] = tempVars[i] + h / 2.0 * k2[i];
+        }
+        for (uint32_t i = 0; i < length; ++i) {
+            k3[i] = exprs[i].value();
+        }
+
+        x = tempX + h;
+        for (uint32_t i = 0; i < length; ++i) {
+            vars[i] = tempVars[i] + h * k3[i];
+        }
+        for (uint32_t i = 0; i < length; ++i) {
+            k4[i] = exprs[i].value();
+        }
+
+        x = tempX + h;
+        for (uint32_t i = 0; i < length; ++i) {
+            vars[i] = tempVars[i] + h * (k1[i] + 2.0*k2[i] + 2.0*k3[i] + k4[i]) / 6.0;
+        }
+
+        std::vector<double> outVars;
+        outVars.reserve(n);
+        outVars.push_back(x);
+        for (double var : vars) {
+            outVars.push_back(var);
+        }
         
-        u = su + h * (k1_u + 2.0*k2_u + 2.0*k3_u + k4_u) / 6.0;
-        v = sv + h * (k1_v + 2.0*k2_v + 2.0*k3_v + k4_v) / 6.0;
-        x = sx + h;
-
-        data.push_back({x, u, v});
+        data.push_back(outVars);
         --n;
     }
 

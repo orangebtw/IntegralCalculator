@@ -15,14 +15,13 @@ class EulerPage final : public DiffMethodPageBase {
     Q_OBJECT
 
 public:
-    EulerPage(bool secondOrder, QWidget* parent = nullptr) : DiffMethodPageBase(secondOrder, "Метод Эйлера", parent) {
+    EulerPage(QWidget* parent = nullptr) : DiffMethodPageBase("Метод Эйлера", parent) {
     }
     
     ~EulerPage() = default;
 
 private:
-    virtual CalculateResult calculate(double x0, double y0, double end, int steps, char dependentVar, char independentVar, const std::string& expr) override;
-    virtual CalculateResult calculate2(double x0, double y0, double dy0, double end, int steps, char dependentVar, char dependentVar2, char independentVar, const std::string &expr1, const std::string &expr2) override;
+    virtual CalculateResult calculate(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) override;
 
 private:
     QButtonGroup* mAlgorithmGroup = nullptr;
