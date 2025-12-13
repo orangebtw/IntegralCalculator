@@ -21,6 +21,8 @@
 #include "./pages/diff/euler.hpp"
 #include "./pages/diff/rungekutta.hpp"
 
+#include "./pages/approx/base.hpp"
+
 MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Калькулятор интегралов");
     setMinimumSize(800, 600);
@@ -36,16 +38,26 @@ namespace MethodTabs {
         Trapezoid,
         Simpson,
         Euler,
-        RungeKutta
+        RungeKutta,
+        Approximation
     };
 }
 
 static QPushButton* CreatePageButton(const QString& title) {
     QPushButton* button = new QPushButton();
     button->setText(title);
-    button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     button->setFixedHeight(40);
     return button;
+}
+
+static QLabel* CreateSectionLabel(const QString& title) {
+    QLabel* label = new QLabel(title);
+    label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    label->setStyleSheet("QLabel{ font-size: 24px; }");
+    label->setAlignment(Qt::AlignCenter);
+    SetForegroundColor(label, Qt::white);
+    return label;
 }
 
 void MainWindow::setupUi() {
@@ -59,40 +71,29 @@ void MainWindow::setupUi() {
     mSimpsonPageButton = CreatePageButton("Симпсон");
     mEulerPageButton = CreatePageButton("Эйлер");
     mRungeKuttaPageButton = CreatePageButton("Рунге-Кутта");
-
-    QLabel* integralSectionTitle = new QLabel("Интеграл");
-    SetForegroundColor(integralSectionTitle, Qt::white);
-
-    integralSectionTitle->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    integralSectionTitle->setStyleSheet("QLabel{ font-size: 24px; }");
-    integralSectionTitle->setAlignment(Qt::AlignCenter);
-
-    QLabel* diffSectionTitle = new QLabel("Дифференциал");
-    SetForegroundColor(diffSectionTitle, Qt::white);
-
-    diffSectionTitle->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    diffSectionTitle->setStyleSheet("QLabel{ font-size: 24px; }");
-    diffSectionTitle->setAlignment(Qt::AlignCenter);
+    mApproxPageButton = CreatePageButton("Элементарные функции");
 
     QWidget* menuContainer = new QWidget();
     SetColor(menuContainer, QPalette::Window, QColor("#212121"));
 
-    menuContainer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+    menuContainer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     menuContainer->setAutoFillBackground(true);
-    menuContainer->setMaximumWidth(250);
+    menuContainer->setMinimumWidth(300);
 
     QVBoxLayout* menuLayout = new QVBoxLayout();
     menuLayout->setContentsMargins(10, 0, 10, 0);
     menuLayout->setSpacing(20);
     menuLayout->addStretch();
-    menuLayout->addWidget(integralSectionTitle);
+    menuLayout->addWidget(CreateSectionLabel("Интеграл"));
     menuLayout->addWidget(mLeftRectanglesPageButton);
     menuLayout->addWidget(mRightRectanglesPageButton);
     menuLayout->addWidget(mTrapezoidPageButton);
     menuLayout->addWidget(mSimpsonPageButton);
-    menuLayout->addWidget(diffSectionTitle);
+    menuLayout->addWidget(CreateSectionLabel("Дифференциал"));
     menuLayout->addWidget(mEulerPageButton);
     menuLayout->addWidget(mRungeKuttaPageButton);
+    menuLayout->addWidget(CreateSectionLabel("Прибл. вычисление"));
+    menuLayout->addWidget(mApproxPageButton);
     menuLayout->addStretch();
 
     menuContainer->setLayout(menuLayout);
@@ -104,6 +105,7 @@ void MainWindow::setupUi() {
     mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonPage());
     mContentWidget->insertWidget(MethodTabs::Euler, new EulerPage());
     mContentWidget->insertWidget(MethodTabs::RungeKutta, new RungeKuttaPage());
+    mContentWidget->insertWidget(MethodTabs::Approximation, new ApproxCalculationPage("ASDASDSAD"));
 
     mainContainerLayout->addWidget(menuContainer);
     mainContainerLayout->addWidget(mContentWidget);
@@ -140,6 +142,10 @@ void MainWindow::setupUi() {
 
     QObject::connect(mRungeKuttaPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::RungeKutta);
+    });
+
+    QObject::connect(mApproxPageButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::Approximation);
     });
 
     setCentralWidget(stackedWidget);

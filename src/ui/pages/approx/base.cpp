@@ -1,0 +1,175 @@
+#include "base.hpp"
+#include <QLocale>
+#include <QString>
+#include <QButtonGroup>
+#include <QRadioButton>
+#include <qbuttongroup.h>
+#include <qradiobutton.h>
+
+#include "../../widgets/hboxwidget.hpp"
+#include "../../widgets/gridwidget.hpp"
+#include "../../utils.hpp"
+
+#include "../../../approx.hpp"
+#include "src/ui/widgets/vboxwidget.hpp"
+
+ApproxCalculationPage::ApproxCalculationPage(const QString& title, QWidget* parent) : QWidget(parent) {
+    setupUi(title);
+    setCalculateButtonCallback([this] {
+        if (!validate()) return;
+
+        QLocale locale = QLocale::system();
+
+        double startX  = locale.toDouble(mStartXEdit->text());
+        double startY  = locale.toDouble(mStartXEdit->text());
+        double epsilon = locale.toDouble(mEpsilonEdit->text());
+
+        double result = 1337.0;
+
+        switch (mFunctionType) {
+        case FunctionType::EtoX:
+            result = approx::e(startX);
+            break;
+        case FunctionType::Sin:
+            result = approx::sin(startX);
+            break;
+        case FunctionType::Sqrt:
+            result = approx::sqrt(startX, startY, epsilon);
+            break;
+        case FunctionType::InvSqrt:
+            result = approx::sqrt(startX, startY, epsilon);
+            break;
+        }
+
+        setResult(QString("Результат: %1").arg(result));
+    });
+}
+
+void ApproxCalculationPage::setupUi(const QString& title) {
+    QDoubleValidator* doubleValidator = new QDoubleValidator();
+
+    mResultLabel = new QLabel();
+    SetFontSize(mResultLabel, 18.0f);
+
+    mCalculateButton = new QPushButton("Вычислить");
+    
+    mStartXEdit = new QLineEdit();
+    mStartXEdit->setValidator(doubleValidator);
+    SetFontSize(mStartXEdit, 12.0f);
+
+    mStartYEdit = new QLineEdit();
+    mStartYEdit->setValidator(doubleValidator);
+    SetFontSize(mStartYEdit, 12.0f);
+
+    mEpsilonEdit = new QLineEdit("0.001");
+    mEpsilonEdit->setValidator(doubleValidator);
+    SetFontSize(mEpsilonEdit, 12.0f);
+    
+    QRadioButton* eFuncButton = new QRadioButton("e^x");
+    QRadioButton* sinFuncButton = new QRadioButton("sin(x)");
+    QRadioButton* sqrtFuncButton = new QRadioButton("sqrt(x)");
+    QRadioButton* invSqrtFuncButton = new QRadioButton("1/sqrt(x)");
+    
+    VBoxWidget* functionSelectionContainer = new VBoxWidget();
+    functionSelectionContainer->addWidget(CreateLabel("Элементарная функция:", 18.0f));
+    functionSelectionContainer->addWidget(eFuncButton);
+    functionSelectionContainer->addWidget(sinFuncButton);
+    functionSelectionContainer->addWidget(sqrtFuncButton);
+    functionSelectionContainer->addWidget(invSqrtFuncButton);
+
+    mFunctionGroup = new QButtonGroup();
+    mFunctionGroup->addButton(eFuncButton, EnumValue(FunctionType::EtoX));
+    mFunctionGroup->addButton(sinFuncButton, EnumValue(FunctionType::Sin));
+    mFunctionGroup->addButton(sqrtFuncButton, EnumValue(FunctionType::Sqrt));
+    mFunctionGroup->addButton(invSqrtFuncButton, EnumValue(FunctionType::InvSqrt));
+
+    QObject::connect(mFunctionGroup, &QButtonGroup::idToggled, [this](int id, bool checked) {
+        if (!checked)
+            return;
+
+        switch (id) {
+            case EnumValue(FunctionType::EtoX):
+                mFunctionType = FunctionType::EtoX;
+                break;
+            case EnumValue(FunctionType::Sin):
+                mFunctionType = FunctionType::Sin;
+                break;
+            case EnumValue(FunctionType::Sqrt):
+                mFunctionType = FunctionType::Sqrt;
+                break;
+            case EnumValue(FunctionType::InvSqrt):
+                mFunctionType = FunctionType::InvSqrt;
+                break;
+            default:
+                throw;
+        }
+    });
+
+    GridWidget* layout = new GridWidget();
+    layout->setHorizontalSpacing(10);
+    layout->setVerticalSpacing(10);
+
+    layout->addWidget(CreateLabel("x", 18.0f), 0, 0);
+    layout->addWidget(CreateLabel("y<sub>0</sub>", 18.0f), 1, 0);
+    layout->addWidget(CreateLabel(QChar(0x03B5), 18.0f), 2, 0);
+
+    layout->addWidget(CreateLabel("=", 18.0f), 0, 1);
+    layout->addWidget(CreateLabel("=", 18.0f), 1, 1);
+    layout->addWidget(CreateLabel("=", 18.0f), 2, 1);
+
+    layout->addWidget(mStartXEdit, 0, 2);
+    layout->addWidget(mStartYEdit, 1, 2);
+    layout->addWidget(mEpsilonEdit, 2, 2);
+
+    QLabel* titleLabel = CreateLabel(title, 36.0f);
+    titleLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    titleLabel->setAlignment(Qt::AlignHCenter);
+    
+    mMainLayout = new QVBoxLayout();
+    mMainLayout->setAlignment(Qt::AlignTop);
+    mMainLayout->setSpacing(20);
+    mMainLayout->addWidget(titleLabel);
+    mMainLayout->addWidget(functionSelectionContainer);
+    mMainLayout->addWidget(layout);
+    mMainLayout->addWidget(mCalculateButton);
+    mMainLayout->addWidget(mResultLabel);
+
+    setLayout(mMainLayout);
+}
+
+void ApproxCalculationPage::setCalculateButtonCallback(std::function<void()> callback) {
+    QObject::connect(mCalculateButton, &QPushButton::clicked, callback);
+}
+
+void ApproxCalculationPage::setError(const QString& errorText) {
+    QPalette palette = mResultLabel->palette();
+    palette.setColor(mResultLabel->foregroundRole(), Qt::red);
+    mResultLabel->setPalette(palette);
+    mResultLabel->setText(errorText);
+    mResultLabel->show();
+}
+
+void ApproxCalculationPage::setResult(const QString& resultText) {
+    QPalette palette = mResultLabel->palette();
+    palette.setColor(mResultLabel->foregroundRole(), Qt::black);
+    mResultLabel->setPalette(palette);
+    mResultLabel->setText(resultText);
+    mResultLabel->show();
+}
+
+bool ApproxCalculationPage::validate() {
+    if (mStartXEdit->text().isEmpty()) {
+        setError("Ошибка: введите X.");
+        return false;
+    }
+    if (mStartYEdit->text().isEmpty()) {
+        setError("Ошибка: введите Y0.");
+        return false;
+    }
+    if (mEpsilonEdit->text().isEmpty()) {
+        setError("Ошибка: введите эпсилон.");
+        return false;
+    }
+
+    return true;
+}

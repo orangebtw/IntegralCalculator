@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QString>
 #include <qsizepolicy.h>
+#include <type_traits>
 
 template <typename T>
 inline void SetFontSize(T* widget, float fontSize) {
@@ -37,6 +38,11 @@ inline void BindVariable(const typename QtPrivate::FunctionPointer<Func1>::Objec
     QObject::connect(sender, signal, [&variable](const T& var) {
         variable = var;
     });
+}
+
+template <typename T>
+constexpr std::underlying_type_t<T> EnumValue(const T value) {
+    return static_cast<std::underlying_type_t<T>>(value);
 }
 
 #endif // !UI_UTILS_HPP_
