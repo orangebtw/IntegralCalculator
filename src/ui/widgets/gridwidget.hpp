@@ -87,6 +87,30 @@ public:
         return mLayout->rowCount();
     }
 
+    void hideRow(int row) {
+        for (int col = 0; col < mLayout->columnCount(); ++col) {
+            QLayoutItem* item = mLayout->itemAtPosition(row, col);
+            if (item) {
+                QWidget* widget = item->widget();
+                if (widget) {
+                    widget->hide();
+                }
+            }
+        }
+    }
+
+    void showRow(int row) {
+        for (int col = 0; col < mLayout->columnCount(); ++col) {
+            QLayoutItem* item = mLayout->itemAtPosition(row, col);
+            if (item) {
+                QWidget* widget = item->widget();
+                if (widget) {
+                    widget->show();
+                }
+            }
+        }
+    }
+
 private:
     QGridLayout* mLayout = nullptr;
 };

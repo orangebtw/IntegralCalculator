@@ -38,7 +38,7 @@ public:
     };
 
 public:
-    ApproxCalculationPage(const QString& title, QWidget* parent = nullptr);
+    ApproxCalculationPage(QWidget* parent = nullptr);
 
 private:
     void setupUi(const QString& title);

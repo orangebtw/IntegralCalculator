@@ -13,15 +13,15 @@
 #include "../../../approx.hpp"
 #include "src/ui/widgets/vboxwidget.hpp"
 
-ApproxCalculationPage::ApproxCalculationPage(const QString& title, QWidget* parent) : QWidget(parent) {
-    setupUi(title);
+ApproxCalculationPage::ApproxCalculationPage(QWidget* parent) : QWidget(parent) {
+    setupUi("Приближенное вычисление элементарных функций");
     setCalculateButtonCallback([this] {
         if (!validate()) return;
 
         QLocale locale = QLocale::system();
 
         double startX  = locale.toDouble(mStartXEdit->text());
-        double startY  = locale.toDouble(mStartXEdit->text());
+        double startY  = locale.toDouble(mStartYEdit->text());
         double epsilon = locale.toDouble(mEpsilonEdit->text());
 
         double result = 1337.0;
@@ -37,7 +37,7 @@ ApproxCalculationPage::ApproxCalculationPage(const QString& title, QWidget* pare
             result = approx::sqrt(startX, startY, epsilon);
             break;
         case FunctionType::InvSqrt:
-            result = approx::sqrt(startX, startY, epsilon);
+            result = approx::inv_sqrt(startX, startY, epsilon);
             break;
         }
 
@@ -61,14 +61,21 @@ void ApproxCalculationPage::setupUi(const QString& title) {
     mStartYEdit->setValidator(doubleValidator);
     SetFontSize(mStartYEdit, 12.0f);
 
-    mEpsilonEdit = new QLineEdit("0.001");
+    mEpsilonEdit = new QLineEdit("0,001");
     mEpsilonEdit->setValidator(doubleValidator);
     SetFontSize(mEpsilonEdit, 12.0f);
     
     QRadioButton* eFuncButton = new QRadioButton("e^x");
+    SetFontSize(eFuncButton, 14.0f);
+
     QRadioButton* sinFuncButton = new QRadioButton("sin(x)");
+    SetFontSize(sinFuncButton, 14.0f);
+
     QRadioButton* sqrtFuncButton = new QRadioButton("sqrt(x)");
+    SetFontSize(sqrtFuncButton, 14.0f);
+
     QRadioButton* invSqrtFuncButton = new QRadioButton("1/sqrt(x)");
+    SetFontSize(invSqrtFuncButton, 14.0f);
     
     VBoxWidget* functionSelectionContainer = new VBoxWidget();
     functionSelectionContainer->addWidget(CreateLabel("Элементарная функция:", 18.0f));
@@ -77,13 +84,31 @@ void ApproxCalculationPage::setupUi(const QString& title) {
     functionSelectionContainer->addWidget(sqrtFuncButton);
     functionSelectionContainer->addWidget(invSqrtFuncButton);
 
+    eFuncButton->setChecked(true);
+
     mFunctionGroup = new QButtonGroup();
     mFunctionGroup->addButton(eFuncButton, EnumValue(FunctionType::EtoX));
     mFunctionGroup->addButton(sinFuncButton, EnumValue(FunctionType::Sin));
     mFunctionGroup->addButton(sqrtFuncButton, EnumValue(FunctionType::Sqrt));
     mFunctionGroup->addButton(invSqrtFuncButton, EnumValue(FunctionType::InvSqrt));
 
-    QObject::connect(mFunctionGroup, &QButtonGroup::idToggled, [this](int id, bool checked) {
+    GridWidget* layout = new GridWidget();
+    layout->setHorizontalSpacing(10);
+    layout->setVerticalSpacing(10);
+
+    layout->addWidget(CreateLabel("x", 18.0f), 0, 0);
+    layout->addWidget(CreateLabel("y<sub>0</sub>", 18.0f), 1, 0);
+    layout->addWidget(CreateLabel(QChar(0x03B5), 18.0f), 2, 0);
+
+    layout->addWidget(CreateLabel("=", 18.0f), 0, 1);
+    layout->addWidget(CreateLabel("=", 18.0f), 1, 1);
+    layout->addWidget(CreateLabel("=", 18.0f), 2, 1);
+
+    layout->addWidget(mStartXEdit, 0, 2);
+    layout->addWidget(mStartYEdit, 1, 2);
+    layout->addWidget(mEpsilonEdit, 2, 2);
+
+    QObject::connect(mFunctionGroup, &QButtonGroup::idToggled, [this, layout](int id, bool checked) {
         if (!checked)
             return;
 
@@ -103,23 +128,13 @@ void ApproxCalculationPage::setupUi(const QString& title) {
             default:
                 throw;
         }
+
+        if (mFunctionType == FunctionType::EtoX || mFunctionType == FunctionType::Sin) {
+            layout->hideRow(1);
+        } else {
+            layout->showRow(1);
+        }
     });
-
-    GridWidget* layout = new GridWidget();
-    layout->setHorizontalSpacing(10);
-    layout->setVerticalSpacing(10);
-
-    layout->addWidget(CreateLabel("x", 18.0f), 0, 0);
-    layout->addWidget(CreateLabel("y<sub>0</sub>", 18.0f), 1, 0);
-    layout->addWidget(CreateLabel(QChar(0x03B5), 18.0f), 2, 0);
-
-    layout->addWidget(CreateLabel("=", 18.0f), 0, 1);
-    layout->addWidget(CreateLabel("=", 18.0f), 1, 1);
-    layout->addWidget(CreateLabel("=", 18.0f), 2, 1);
-
-    layout->addWidget(mStartXEdit, 0, 2);
-    layout->addWidget(mStartYEdit, 1, 2);
-    layout->addWidget(mEpsilonEdit, 2, 2);
 
     QLabel* titleLabel = CreateLabel(title, 36.0f);
     titleLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
@@ -162,8 +177,8 @@ bool ApproxCalculationPage::validate() {
         setError("Ошибка: введите X.");
         return false;
     }
-    if (mStartYEdit->text().isEmpty()) {
-        setError("Ошибка: введите Y0.");
+    if ((mFunctionType != FunctionType::EtoX && mFunctionType != FunctionType::Sin) && mStartYEdit->text().isEmpty()) {
+        setError("Ошибка: введите Y<sub>0</sub>.");
         return false;
     }
     if (mEpsilonEdit->text().isEmpty()) {

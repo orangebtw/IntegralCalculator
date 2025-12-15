@@ -105,7 +105,7 @@ void MainWindow::setupUi() {
     mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonPage());
     mContentWidget->insertWidget(MethodTabs::Euler, new EulerPage());
     mContentWidget->insertWidget(MethodTabs::RungeKutta, new RungeKuttaPage());
-    mContentWidget->insertWidget(MethodTabs::Approximation, new ApproxCalculationPage("ASDASDSAD"));
+    mContentWidget->insertWidget(MethodTabs::Approximation, new ApproxCalculationPage());
 
     mainContainerLayout->addWidget(menuContainer);
     mainContainerLayout->addWidget(mContentWidget);

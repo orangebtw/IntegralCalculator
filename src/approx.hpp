@@ -65,7 +65,7 @@ inline double inv_sqrt(double x, double y0, double eps) {
 
     do {
         prev_y = y;
-        y = y * (3.0 - x * y*y) / 2.0;
+        y = y / 2.0 * (3.0 - x * y*y);
     } while (std::abs(y - prev_y) > eps);
 
     return y;
