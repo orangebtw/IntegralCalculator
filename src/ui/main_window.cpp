@@ -48,6 +48,10 @@ static QPushButton* CreatePageButton(const QString& title) {
     button->setText(title);
     button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     button->setFixedHeight(40);
+    button->setStyleSheet(
+        "QPushButton { background-color: white; border-radius: 5px; border: none; }"
+        "QPushButton:hover { background-color: rgb(230, 230, 230); }"
+    );
     return button;
 }
 

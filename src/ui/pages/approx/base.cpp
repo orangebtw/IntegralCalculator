@@ -92,47 +92,47 @@ void ApproxCalculationPage::setupUi(const QString& title) {
     mFunctionGroup->addButton(sqrtFuncButton, EnumValue(FunctionType::Sqrt));
     mFunctionGroup->addButton(invSqrtFuncButton, EnumValue(FunctionType::InvSqrt));
 
-    GridWidget* layout = new GridWidget();
-    layout->setHorizontalSpacing(10);
-    layout->setVerticalSpacing(10);
+    mContainer = new GridWidget();
+    mContainer->setHorizontalSpacing(10);
+    mContainer->setVerticalSpacing(10);
 
-    layout->addWidget(CreateLabel("x", 18.0f), 0, 0);
-    layout->addWidget(CreateLabel("y<sub>0</sub>", 18.0f), 1, 0);
-    layout->addWidget(CreateLabel(QChar(0x03B5), 18.0f), 2, 0);
+    mContainer->addWidget(CreateLabel("x", 18.0f), 0, 0);
+    mContainer->addWidget(CreateLabel("y<sub>0</sub>", 18.0f), 1, 0);
+    mContainer->addWidget(CreateLabel(QChar(0x03B5), 18.0f), 2, 0);
 
-    layout->addWidget(CreateLabel("=", 18.0f), 0, 1);
-    layout->addWidget(CreateLabel("=", 18.0f), 1, 1);
-    layout->addWidget(CreateLabel("=", 18.0f), 2, 1);
+    mContainer->addWidget(CreateLabel("=", 18.0f), 0, 1);
+    mContainer->addWidget(CreateLabel("=", 18.0f), 1, 1);
+    mContainer->addWidget(CreateLabel("=", 18.0f), 2, 1);
 
-    layout->addWidget(mStartXEdit, 0, 2);
-    layout->addWidget(mStartYEdit, 1, 2);
-    layout->addWidget(mEpsilonEdit, 2, 2);
+    mContainer->addWidget(mStartXEdit, 0, 2);
+    mContainer->addWidget(mStartYEdit, 1, 2);
+    mContainer->addWidget(mEpsilonEdit, 2, 2);
 
-    QObject::connect(mFunctionGroup, &QButtonGroup::idToggled, [this, layout](int id, bool checked) {
+    if (mFunctionType == FunctionType::EtoX || mFunctionType == FunctionType::Sin) {
+        mContainer->hideRow(1);
+    } else {
+        mContainer->showRow(1);
+    }
+
+    QObject::connect(mFunctionGroup, &QButtonGroup::idToggled, [this](int id, bool checked) {
         if (!checked)
             return;
 
         switch (id) {
             case EnumValue(FunctionType::EtoX):
-                mFunctionType = FunctionType::EtoX;
+                functionTypeChanged(FunctionType::EtoX);
                 break;
             case EnumValue(FunctionType::Sin):
-                mFunctionType = FunctionType::Sin;
+                functionTypeChanged(FunctionType::Sin);
                 break;
             case EnumValue(FunctionType::Sqrt):
-                mFunctionType = FunctionType::Sqrt;
+                functionTypeChanged(FunctionType::Sqrt);
                 break;
             case EnumValue(FunctionType::InvSqrt):
-                mFunctionType = FunctionType::InvSqrt;
+                functionTypeChanged(FunctionType::InvSqrt);
                 break;
             default:
                 throw;
-        }
-
-        if (mFunctionType == FunctionType::EtoX || mFunctionType == FunctionType::Sin) {
-            layout->hideRow(1);
-        } else {
-            layout->showRow(1);
         }
     });
 
@@ -145,7 +145,7 @@ void ApproxCalculationPage::setupUi(const QString& title) {
     mMainLayout->setSpacing(20);
     mMainLayout->addWidget(titleLabel);
     mMainLayout->addWidget(functionSelectionContainer);
-    mMainLayout->addWidget(layout);
+    mMainLayout->addWidget(mContainer);
     mMainLayout->addWidget(mCalculateButton);
     mMainLayout->addWidget(mResultLabel);
 
@@ -178,7 +178,7 @@ bool ApproxCalculationPage::validate() {
         return false;
     }
     if ((mFunctionType != FunctionType::EtoX && mFunctionType != FunctionType::Sin) && mStartYEdit->text().isEmpty()) {
-        setError("Ошибка: введите Y<sub>0</sub>.");
+        setError("Ошибка: введите y<sub>0</sub>.");
         return false;
     }
     if (mEpsilonEdit->text().isEmpty()) {
@@ -187,4 +187,14 @@ bool ApproxCalculationPage::validate() {
     }
 
     return true;
+}
+
+void ApproxCalculationPage::functionTypeChanged(FunctionType functionType) {
+    mFunctionType = functionType;
+
+    if (functionType == FunctionType::EtoX || functionType == FunctionType::Sin) {
+        mContainer->hideRow(1);
+    } else {
+        mContainer->showRow(1);
+    }
 }

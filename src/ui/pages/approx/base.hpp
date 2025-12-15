@@ -19,6 +19,8 @@
 #include <functional>
 #include <qnamespace.h>
 
+#include "../../widgets/gridwidget.hpp"
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     using QtCharts::QChartView;
     using QtCharts::QChart;
@@ -50,6 +52,9 @@ private:
 
     bool validate();
 
+private:
+    void functionTypeChanged(FunctionType functionType);
+
 protected:
     QPushButton* mCalculateButton = nullptr;
     QLayout* mMainLayout = nullptr;
@@ -60,6 +65,8 @@ protected:
     QLineEdit* mEpsilonEdit = nullptr;
 
     QButtonGroup* mFunctionGroup = nullptr;
+
+    GridWidget* mContainer = nullptr;
 
     FunctionType mFunctionType = FunctionType::EtoX;
 };

@@ -7,6 +7,8 @@
 namespace approx {
 
 inline double e(double x) {
+    const double power = std::abs(x);
+
     std::array<double, 8> A;
     A[0] = 1.0;
 
@@ -17,9 +19,14 @@ inline double e(double x) {
     }
 
     double S = 0.0;
+    double p = 1.0;
     for (std::size_t i = 0; i < A.size(); ++i) {
-        S += A[i] * x;
-        x *= x;
+        S += A[i] * p;
+        p *= power;
+    }
+
+    if (x < 0.0) {
+        S = 1.0 / S;
     }
 
     return S;
