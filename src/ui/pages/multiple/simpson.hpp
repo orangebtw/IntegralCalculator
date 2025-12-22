@@ -6,7 +6,8 @@
 class MultipleSimpsonPage : public MultipleIntegralBase {
     Q_OBJECT
 public:
-    MultipleSimpsonPage(QWidget* parent = nullptr);
+    MultipleSimpsonPage(QWidget* parent = nullptr) : MultipleIntegralBase("Кратный интеграл (двойной интеграл методом Симпсона)", parent) {        
+    }
     
 protected:
     MultipleIntegralBase::CalculateResult calculate(double a, double b, double c, double d, int nx, int ny, const std::string& expr) override;

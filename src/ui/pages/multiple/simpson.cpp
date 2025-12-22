@@ -1,8 +1,6 @@
 #include "simpson.hpp"
 #include "../../../exprtk.hpp"
 
-MultipleSimpsonPage::MultipleSimpsonPage(QWidget* parent) : MultipleIntegralBase("Кратный интеграл (двойной интеграл методом Симпсона)", parent) {}
-
 MultipleIntegralBase::CalculateResult MultipleSimpsonPage::calculate(double a, double b, double c, double d, int nx, int ny, const std::string& expr_str) {
     try {
         typedef exprtk::symbol_table<double> symbol_table_t;
