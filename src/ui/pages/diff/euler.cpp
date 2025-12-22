@@ -3,7 +3,7 @@
 #include "../../../exprtk.hpp"
 #include "../../../diff.hpp"
 
-EulerPage::CalculateResult EulerPage::calculate(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) {
+DiffMethodPageBase::CalculateResult EulerPage::calculate(double x0, double end, int steps, char independentVar, const std::vector<double>& startValues, const std::vector<char>& dependentVars, const std::vector<std::string>& exprs) {
     const uint32_t n = exprs.size();
 
     std::vector<exprtk::expression<double>> expressions(n);

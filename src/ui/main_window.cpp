@@ -17,6 +17,7 @@
 #include "./pages/integral/trapezoid.hpp"
 #include "./pages/integral/left_rectangles.hpp"
 #include "./pages/integral/simpson.hpp"
+#include "./pages/multiple/simpson.hpp"
 
 #include "./pages/diff/euler.hpp"
 #include "./pages/diff/rungekutta.hpp"
@@ -37,6 +38,7 @@ namespace MethodTabs {
         RightRectangles,
         Trapezoid,
         Simpson,
+        MultipleSimpson,
         Euler,
         RungeKutta,
         Approximation
@@ -73,6 +75,7 @@ void MainWindow::setupUi() {
     mRightRectanglesPageButton = CreatePageButton("Прямоугольники правых частей");
     mTrapezoidPageButton = CreatePageButton("Трапеция");
     mSimpsonPageButton = CreatePageButton("Симпсон");
+    mMultipleSimpsonPageButton = CreatePageButton("Кратный интеграл");
     mEulerPageButton = CreatePageButton("Эйлер");
     mRungeKuttaPageButton = CreatePageButton("Рунге-Кутта");
     mApproxPageButton = CreatePageButton("Элементарные функции");
@@ -93,6 +96,7 @@ void MainWindow::setupUi() {
     menuLayout->addWidget(mRightRectanglesPageButton);
     menuLayout->addWidget(mTrapezoidPageButton);
     menuLayout->addWidget(mSimpsonPageButton);
+    menuLayout->addWidget(mMultipleSimpsonPageButton);
     menuLayout->addWidget(CreateSectionLabel("Дифференциал"));
     menuLayout->addWidget(mEulerPageButton);
     menuLayout->addWidget(mRungeKuttaPageButton);
@@ -107,6 +111,7 @@ void MainWindow::setupUi() {
     mContentWidget->insertWidget(MethodTabs::RightRectangles, new RightRectanglesPage());
     mContentWidget->insertWidget(MethodTabs::Trapezoid, new TrapezoidPage());
     mContentWidget->insertWidget(MethodTabs::Simpson, new SimpsonPage());
+    mContentWidget->insertWidget(MethodTabs::MultipleSimpson, new MultipleSimpsonPage());
     mContentWidget->insertWidget(MethodTabs::Euler, new EulerPage());
     mContentWidget->insertWidget(MethodTabs::RungeKutta, new RungeKuttaPage());
     mContentWidget->insertWidget(MethodTabs::Approximation, new ApproxCalculationPage());
@@ -138,6 +143,10 @@ void MainWindow::setupUi() {
 
     QObject::connect(mSimpsonPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::Simpson);
+    });
+
+    QObject::connect(mMultipleSimpsonPageButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::MultipleSimpson);
     });
 
     QObject::connect(mEulerPageButton, &QPushButton::clicked, [this] {

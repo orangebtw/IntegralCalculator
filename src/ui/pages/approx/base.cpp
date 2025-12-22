@@ -8,10 +8,10 @@
 
 #include "../../widgets/hboxwidget.hpp"
 #include "../../widgets/gridwidget.hpp"
+#include "../../widgets/vboxwidget.hpp"
 #include "../../utils.hpp"
 
 #include "../../../approx.hpp"
-#include "src/ui/widgets/vboxwidget.hpp"
 
 ApproxCalculationPage::ApproxCalculationPage(QWidget* parent) : QWidget(parent) {
     setupUi("Приближенное вычисление элементарных функций");
