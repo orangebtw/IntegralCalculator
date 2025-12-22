@@ -26,6 +26,9 @@ private:
     QPushButton* mRungeKuttaPageButton = nullptr;
     QPushButton* mApproxPageButton = nullptr;
     QPushButton* mMultipleSimpsonPageButton = nullptr;
+    QPushButton* mNonlinearNewtonPageButton = nullptr;
+    QPushButton* mNonlinearDichotomyPageButton = nullptr;
+    QPushButton* mNonlinearSecantPageButton = nullptr;
 };
 
 #endif // APP_HPP_

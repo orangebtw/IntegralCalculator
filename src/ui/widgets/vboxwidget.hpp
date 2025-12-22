@@ -3,10 +3,19 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <initializer_list>
+#include <qmargins.h>
+#include <qnamespace.h>
 
 class VBoxWidget : public QWidget {
     Q_OBJECT;
-
+public:
+    struct Descriptor {
+        QMargins margins = QMargins(0, 0, 0, 0);
+        int spacing = 0;
+        Qt::Alignment alignment = Qt::AlignTop;
+        std::initializer_list<QWidget*> widgets = {};
+    };
 public:
     VBoxWidget(QWidget* parent = nullptr) : QWidget(parent) {
         mLayout = new QVBoxLayout();
@@ -14,6 +23,18 @@ public:
         mLayout->setSpacing(0);
         mLayout->setAlignment(Qt::AlignTop);
         setLayout(mLayout);
+    }
+
+    VBoxWidget(Descriptor desc, QWidget* parent = nullptr) : QWidget(parent) {
+        mLayout = new QVBoxLayout();
+        mLayout->setContentsMargins(desc.margins);
+        mLayout->setSpacing(desc.spacing);
+        mLayout->setAlignment(desc.alignment);
+        setLayout(mLayout);
+
+        for (QWidget* widget : desc.widgets) {
+            addWidget(widget);
+        }
     }
 
     void addWidget(QWidget* widget, int stretch = 0, Qt::Alignment alignment = Qt::Alignment()) {

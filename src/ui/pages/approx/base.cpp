@@ -6,7 +6,6 @@
 #include <qbuttongroup.h>
 #include <qradiobutton.h>
 
-#include "../../widgets/hboxwidget.hpp"
 #include "../../widgets/gridwidget.hpp"
 #include "../../widgets/vboxwidget.hpp"
 #include "../../utils.hpp"
@@ -139,6 +138,7 @@ void ApproxCalculationPage::setupUi(const QString& title) {
     QLabel* titleLabel = CreateLabel(title, 36.0f);
     titleLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     titleLabel->setAlignment(Qt::AlignHCenter);
+    titleLabel->setWordWrap(true);
     
     mMainLayout = new QVBoxLayout();
     mMainLayout->setAlignment(Qt::AlignTop);

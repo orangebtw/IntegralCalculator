@@ -13,6 +13,8 @@
 
 #include "main_window.hpp"
 
+#include "./widgets/vboxwidget.hpp"
+
 #include "./pages/integral/right_rectangles.hpp"
 #include "./pages/integral/trapezoid.hpp"
 #include "./pages/integral/left_rectangles.hpp"
@@ -23,6 +25,10 @@
 #include "./pages/diff/rungekutta.hpp"
 
 #include "./pages/approx/base.hpp"
+
+#include "./pages/nonlinear/newton.hpp"
+#include "./pages/nonlinear/dichotomy.hpp"
+#include "./pages/nonlinear/secant.hpp"
 
 MainWindow::MainWindow() : QMainWindow() {
     setWindowTitle("Калькулятор интегралов");
@@ -41,7 +47,10 @@ namespace MethodTabs {
         MultipleSimpson,
         Euler,
         RungeKutta,
-        Approximation
+        Approximation,
+        NonlinearNewton,
+        NonlinearDichotomy,
+        NonlinearSecant,
     };
 }
 
@@ -79,6 +88,9 @@ void MainWindow::setupUi() {
     mEulerPageButton = CreatePageButton("Эйлер");
     mRungeKuttaPageButton = CreatePageButton("Рунге-Кутта");
     mApproxPageButton = CreatePageButton("Элементарные функции");
+    mNonlinearNewtonPageButton = CreatePageButton("Метод Ньютона");
+    mNonlinearDichotomyPageButton = CreatePageButton("Метод Дихотомии");
+    mNonlinearSecantPageButton = CreatePageButton("Метод Хорд");
 
     QWidget* menuContainer = new QWidget();
     SetColor(menuContainer, QPalette::Window, QColor("#212121"));
@@ -92,16 +104,35 @@ void MainWindow::setupUi() {
     menuLayout->setSpacing(20);
     menuLayout->addStretch();
     menuLayout->addWidget(CreateSectionLabel("Интеграл"));
-    menuLayout->addWidget(mLeftRectanglesPageButton);
-    menuLayout->addWidget(mRightRectanglesPageButton);
-    menuLayout->addWidget(mTrapezoidPageButton);
-    menuLayout->addWidget(mSimpsonPageButton);
-    menuLayout->addWidget(mMultipleSimpsonPageButton);
+    menuLayout->addWidget(new VBoxWidget({
+        .spacing = 12,
+        .widgets = {
+            mLeftRectanglesPageButton,
+            mRightRectanglesPageButton,
+            mTrapezoidPageButton,
+            mSimpsonPageButton,
+            mMultipleSimpsonPageButton,
+        }
+    }));
     menuLayout->addWidget(CreateSectionLabel("Дифференциал"));
-    menuLayout->addWidget(mEulerPageButton);
-    menuLayout->addWidget(mRungeKuttaPageButton);
+    menuLayout->addWidget(new VBoxWidget({
+        .spacing = 12,
+        .widgets = {
+            mEulerPageButton,
+            mRungeKuttaPageButton
+        }
+    }));
     menuLayout->addWidget(CreateSectionLabel("Прибл. вычисление"));
     menuLayout->addWidget(mApproxPageButton);
+    menuLayout->addWidget(CreateSectionLabel("Нелинейные уравнения"));
+    menuLayout->addWidget(new VBoxWidget({
+        .spacing = 12,
+        .widgets = {
+            mNonlinearNewtonPageButton,
+            mNonlinearDichotomyPageButton,
+            mNonlinearSecantPageButton
+        }
+    }));
     menuLayout->addStretch();
 
     menuContainer->setLayout(menuLayout);
@@ -115,6 +146,9 @@ void MainWindow::setupUi() {
     mContentWidget->insertWidget(MethodTabs::Euler, new EulerPage());
     mContentWidget->insertWidget(MethodTabs::RungeKutta, new RungeKuttaPage());
     mContentWidget->insertWidget(MethodTabs::Approximation, new ApproxCalculationPage());
+    mContentWidget->insertWidget(MethodTabs::NonlinearNewton, new NonlinearNewtonMethodPage());
+    mContentWidget->insertWidget(MethodTabs::NonlinearDichotomy, new NonlinearDichotomyMethodPage());
+    mContentWidget->insertWidget(MethodTabs::NonlinearSecant, new NonlinearSecantMethodPage());
 
     mainContainerLayout->addWidget(menuContainer);
     mainContainerLayout->addWidget(mContentWidget);
@@ -159,6 +193,18 @@ void MainWindow::setupUi() {
 
     QObject::connect(mApproxPageButton, &QPushButton::clicked, [this] {
         mContentWidget->setCurrentIndex(MethodTabs::Approximation);
+    });
+
+    QObject::connect(mNonlinearNewtonPageButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::NonlinearNewton);
+    });
+
+    QObject::connect(mNonlinearDichotomyPageButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::NonlinearDichotomy);
+    });
+
+    QObject::connect(mNonlinearSecantPageButton, &QPushButton::clicked, [this] {
+        mContentWidget->setCurrentIndex(MethodTabs::NonlinearSecant);
     });
 
     setCentralWidget(stackedWidget);

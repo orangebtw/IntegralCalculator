@@ -27,6 +27,7 @@ void MultipleIntegralBase::setupUi(const QString& title) {
     QLabel* titleLabel = CreateLabel(title, 36.0f);
     titleLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     titleLabel->setAlignment(Qt::AlignHCenter);
+    titleLabel->setWordWrap(true);
     
     mChart = new QChart();
     mChart->legend()->hide();
@@ -77,7 +78,7 @@ void MultipleIntegralBase::addInputs() {
     VBoxWidget* exprContainer = new VBoxWidget();
     QLabel* exprLabel = CreateLabel("Функция f(x,y):", 12.0f);
     mExpressionEdit = new QLineEdit();
-    mExpressionEdit->setPlaceholderText("например: sin(x+y)");
+    mExpressionEdit->setPlaceholderText("Например: sin(x+y)");
     exprContainer->addWidget(exprLabel);
     exprContainer->addWidget(mExpressionEdit);
     exprContainer->setSpacing(5);

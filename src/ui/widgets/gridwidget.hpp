@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QGridLayout>
+#include <initializer_list>
 
 class GridWidget : public QWidget {
     Q_OBJECT;
@@ -13,6 +14,15 @@ public:
         mLayout->setContentsMargins(0, 0, 0, 0);
         mLayout->setSpacing(0);
         setLayout(mLayout);
+    }
+
+    void addColumn(std::initializer_list<QWidget*> widgets, Qt::Alignment alignment = Qt::Alignment()) {
+        int col = columnCount();
+        int row = 0;
+        for (QWidget* widget : widgets) {
+            mLayout->addWidget(widget, row, col, alignment);
+            ++row;
+        }
     }
 
     void addWidget(QWidget* widget, int row, int column, Qt::Alignment alignment = Qt::Alignment()) {

@@ -150,6 +150,7 @@ void DiffMethodPageBase::setupUi(const QString& title) {
     QLabel* titleLabel = CreateLabel(title, 36.0f);
     titleLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     titleLabel->setAlignment(Qt::AlignHCenter);
+    titleLabel->setWordWrap(true);
 
     mChart = new QChart();
     mChart->setContentsMargins(0, 0, 0, 0);
